@@ -1,0 +1,27 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type LabellingTask {
+  id: ID!
+  title: String!
+  example: String
+  user: User!
+  response: String
+}
+
+type User {
+  id: ID!
+  name: String!
+}
+
+type Query {
+  labellingTask(ID: ID!): LabellingTask
+  labellingTasks: [LabellingTask!]!
+  labellingUserTasks(userID: ID!): [LabellingTask!]!
+}
+
+type Mutation {
+  addResponse(taskId: ID!, response: String!): LabellingTask!
+}
+
