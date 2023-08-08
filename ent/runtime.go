@@ -4,6 +4,7 @@ package ent
 
 import (
 	"github.com/carlosruizg/muni/ent/expert"
+	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/schema"
 )
 
@@ -17,4 +18,10 @@ func init() {
 	expertDescName := expertFields[0].Descriptor()
 	// expert.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	expert.NameValidator = expertDescName.Validators[0].(func(string) error)
+	labellingtaskFields := schema.LabellingTask{}.Fields()
+	_ = labellingtaskFields
+	// labellingtaskDescTitle is the schema descriptor for title field.
+	labellingtaskDescTitle := labellingtaskFields[0].Descriptor()
+	// labellingtask.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	labellingtask.TitleValidator = labellingtaskDescTitle.Validators[0].(func(string) error)
 }

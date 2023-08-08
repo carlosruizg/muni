@@ -11,6 +11,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/carlosruizg/muni/ent/expert"
+	"github.com/carlosruizg/muni/ent/labellingtask"
+	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
 	"github.com/carlosruizg/muni/ent/predicate"
 )
 
@@ -23,7 +25,9 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeExpert = "Expert"
+	TypeExpert                = "Expert"
+	TypeLabellingTask         = "LabellingTask"
+	TypeLabellingTaskResponse = "LabellingTaskResponse"
 )
 
 // ExpertMutation represents an operation that mutates the Expert nodes in the graph.
@@ -350,4 +354,892 @@ func (m *ExpertMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ExpertMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Expert edge %s", name)
+}
+
+// LabellingTaskMutation represents an operation that mutates the LabellingTask nodes in the graph.
+type LabellingTaskMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int
+	title            *string
+	description      *string
+	clearedFields    map[string]struct{}
+	responses        map[int]struct{}
+	removedresponses map[int]struct{}
+	clearedresponses bool
+	done             bool
+	oldValue         func(context.Context) (*LabellingTask, error)
+	predicates       []predicate.LabellingTask
+}
+
+var _ ent.Mutation = (*LabellingTaskMutation)(nil)
+
+// labellingtaskOption allows management of the mutation configuration using functional options.
+type labellingtaskOption func(*LabellingTaskMutation)
+
+// newLabellingTaskMutation creates new mutation for the LabellingTask entity.
+func newLabellingTaskMutation(c config, op Op, opts ...labellingtaskOption) *LabellingTaskMutation {
+	m := &LabellingTaskMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLabellingTask,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLabellingTaskID sets the ID field of the mutation.
+func withLabellingTaskID(id int) labellingtaskOption {
+	return func(m *LabellingTaskMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LabellingTask
+		)
+		m.oldValue = func(ctx context.Context) (*LabellingTask, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LabellingTask.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLabellingTask sets the old LabellingTask of the mutation.
+func withLabellingTask(node *LabellingTask) labellingtaskOption {
+	return func(m *LabellingTaskMutation) {
+		m.oldValue = func(context.Context) (*LabellingTask, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LabellingTaskMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LabellingTaskMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LabellingTaskMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LabellingTaskMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LabellingTask.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTitle sets the "title" field.
+func (m *LabellingTaskMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *LabellingTaskMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the LabellingTask entity.
+// If the LabellingTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LabellingTaskMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *LabellingTaskMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *LabellingTaskMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *LabellingTaskMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the LabellingTask entity.
+// If the LabellingTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LabellingTaskMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *LabellingTaskMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[labellingtask.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *LabellingTaskMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[labellingtask.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *LabellingTaskMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, labellingtask.FieldDescription)
+}
+
+// AddResponseIDs adds the "responses" edge to the LabellingTaskResponse entity by ids.
+func (m *LabellingTaskMutation) AddResponseIDs(ids ...int) {
+	if m.responses == nil {
+		m.responses = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.responses[ids[i]] = struct{}{}
+	}
+}
+
+// ClearResponses clears the "responses" edge to the LabellingTaskResponse entity.
+func (m *LabellingTaskMutation) ClearResponses() {
+	m.clearedresponses = true
+}
+
+// ResponsesCleared reports if the "responses" edge to the LabellingTaskResponse entity was cleared.
+func (m *LabellingTaskMutation) ResponsesCleared() bool {
+	return m.clearedresponses
+}
+
+// RemoveResponseIDs removes the "responses" edge to the LabellingTaskResponse entity by IDs.
+func (m *LabellingTaskMutation) RemoveResponseIDs(ids ...int) {
+	if m.removedresponses == nil {
+		m.removedresponses = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.responses, ids[i])
+		m.removedresponses[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedResponses returns the removed IDs of the "responses" edge to the LabellingTaskResponse entity.
+func (m *LabellingTaskMutation) RemovedResponsesIDs() (ids []int) {
+	for id := range m.removedresponses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResponsesIDs returns the "responses" edge IDs in the mutation.
+func (m *LabellingTaskMutation) ResponsesIDs() (ids []int) {
+	for id := range m.responses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetResponses resets all changes to the "responses" edge.
+func (m *LabellingTaskMutation) ResetResponses() {
+	m.responses = nil
+	m.clearedresponses = false
+	m.removedresponses = nil
+}
+
+// Where appends a list predicates to the LabellingTaskMutation builder.
+func (m *LabellingTaskMutation) Where(ps ...predicate.LabellingTask) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LabellingTaskMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LabellingTaskMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LabellingTask, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LabellingTaskMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LabellingTaskMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LabellingTask).
+func (m *LabellingTaskMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LabellingTaskMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.title != nil {
+		fields = append(fields, labellingtask.FieldTitle)
+	}
+	if m.description != nil {
+		fields = append(fields, labellingtask.FieldDescription)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LabellingTaskMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case labellingtask.FieldTitle:
+		return m.Title()
+	case labellingtask.FieldDescription:
+		return m.Description()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LabellingTaskMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case labellingtask.FieldTitle:
+		return m.OldTitle(ctx)
+	case labellingtask.FieldDescription:
+		return m.OldDescription(ctx)
+	}
+	return nil, fmt.Errorf("unknown LabellingTask field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LabellingTaskMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case labellingtask.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case labellingtask.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LabellingTask field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LabellingTaskMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LabellingTaskMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LabellingTaskMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown LabellingTask numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LabellingTaskMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(labellingtask.FieldDescription) {
+		fields = append(fields, labellingtask.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LabellingTaskMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LabellingTaskMutation) ClearField(name string) error {
+	switch name {
+	case labellingtask.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown LabellingTask nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LabellingTaskMutation) ResetField(name string) error {
+	switch name {
+	case labellingtask.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case labellingtask.FieldDescription:
+		m.ResetDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown LabellingTask field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LabellingTaskMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.responses != nil {
+		edges = append(edges, labellingtask.EdgeResponses)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LabellingTaskMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case labellingtask.EdgeResponses:
+		ids := make([]ent.Value, 0, len(m.responses))
+		for id := range m.responses {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LabellingTaskMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedresponses != nil {
+		edges = append(edges, labellingtask.EdgeResponses)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LabellingTaskMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case labellingtask.EdgeResponses:
+		ids := make([]ent.Value, 0, len(m.removedresponses))
+		for id := range m.removedresponses {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LabellingTaskMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedresponses {
+		edges = append(edges, labellingtask.EdgeResponses)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LabellingTaskMutation) EdgeCleared(name string) bool {
+	switch name {
+	case labellingtask.EdgeResponses:
+		return m.clearedresponses
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LabellingTaskMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown LabellingTask unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LabellingTaskMutation) ResetEdge(name string) error {
+	switch name {
+	case labellingtask.EdgeResponses:
+		m.ResetResponses()
+		return nil
+	}
+	return fmt.Errorf("unknown LabellingTask edge %s", name)
+}
+
+// LabellingTaskResponseMutation represents an operation that mutates the LabellingTaskResponse nodes in the graph.
+type LabellingTaskResponseMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	response      *string
+	clearedFields map[string]struct{}
+	task          *int
+	clearedtask   bool
+	done          bool
+	oldValue      func(context.Context) (*LabellingTaskResponse, error)
+	predicates    []predicate.LabellingTaskResponse
+}
+
+var _ ent.Mutation = (*LabellingTaskResponseMutation)(nil)
+
+// labellingtaskresponseOption allows management of the mutation configuration using functional options.
+type labellingtaskresponseOption func(*LabellingTaskResponseMutation)
+
+// newLabellingTaskResponseMutation creates new mutation for the LabellingTaskResponse entity.
+func newLabellingTaskResponseMutation(c config, op Op, opts ...labellingtaskresponseOption) *LabellingTaskResponseMutation {
+	m := &LabellingTaskResponseMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLabellingTaskResponse,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLabellingTaskResponseID sets the ID field of the mutation.
+func withLabellingTaskResponseID(id int) labellingtaskresponseOption {
+	return func(m *LabellingTaskResponseMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LabellingTaskResponse
+		)
+		m.oldValue = func(ctx context.Context) (*LabellingTaskResponse, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LabellingTaskResponse.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLabellingTaskResponse sets the old LabellingTaskResponse of the mutation.
+func withLabellingTaskResponse(node *LabellingTaskResponse) labellingtaskresponseOption {
+	return func(m *LabellingTaskResponseMutation) {
+		m.oldValue = func(context.Context) (*LabellingTaskResponse, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LabellingTaskResponseMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LabellingTaskResponseMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LabellingTaskResponseMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LabellingTaskResponseMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LabellingTaskResponse.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetResponse sets the "response" field.
+func (m *LabellingTaskResponseMutation) SetResponse(s string) {
+	m.response = &s
+}
+
+// Response returns the value of the "response" field in the mutation.
+func (m *LabellingTaskResponseMutation) Response() (r string, exists bool) {
+	v := m.response
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResponse returns the old "response" field's value of the LabellingTaskResponse entity.
+// If the LabellingTaskResponse object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LabellingTaskResponseMutation) OldResponse(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResponse is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResponse requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResponse: %w", err)
+	}
+	return oldValue.Response, nil
+}
+
+// ResetResponse resets all changes to the "response" field.
+func (m *LabellingTaskResponseMutation) ResetResponse() {
+	m.response = nil
+}
+
+// SetTaskID sets the "task" edge to the LabellingTask entity by id.
+func (m *LabellingTaskResponseMutation) SetTaskID(id int) {
+	m.task = &id
+}
+
+// ClearTask clears the "task" edge to the LabellingTask entity.
+func (m *LabellingTaskResponseMutation) ClearTask() {
+	m.clearedtask = true
+}
+
+// TaskCleared reports if the "task" edge to the LabellingTask entity was cleared.
+func (m *LabellingTaskResponseMutation) TaskCleared() bool {
+	return m.clearedtask
+}
+
+// TaskID returns the "task" edge ID in the mutation.
+func (m *LabellingTaskResponseMutation) TaskID() (id int, exists bool) {
+	if m.task != nil {
+		return *m.task, true
+	}
+	return
+}
+
+// TaskIDs returns the "task" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TaskID instead. It exists only for internal usage by the builders.
+func (m *LabellingTaskResponseMutation) TaskIDs() (ids []int) {
+	if id := m.task; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTask resets all changes to the "task" edge.
+func (m *LabellingTaskResponseMutation) ResetTask() {
+	m.task = nil
+	m.clearedtask = false
+}
+
+// Where appends a list predicates to the LabellingTaskResponseMutation builder.
+func (m *LabellingTaskResponseMutation) Where(ps ...predicate.LabellingTaskResponse) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LabellingTaskResponseMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LabellingTaskResponseMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LabellingTaskResponse, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LabellingTaskResponseMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LabellingTaskResponseMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LabellingTaskResponse).
+func (m *LabellingTaskResponseMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LabellingTaskResponseMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.response != nil {
+		fields = append(fields, labellingtaskresponse.FieldResponse)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LabellingTaskResponseMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case labellingtaskresponse.FieldResponse:
+		return m.Response()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LabellingTaskResponseMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case labellingtaskresponse.FieldResponse:
+		return m.OldResponse(ctx)
+	}
+	return nil, fmt.Errorf("unknown LabellingTaskResponse field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LabellingTaskResponseMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case labellingtaskresponse.FieldResponse:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResponse(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LabellingTaskResponse field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LabellingTaskResponseMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LabellingTaskResponseMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LabellingTaskResponseMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown LabellingTaskResponse numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LabellingTaskResponseMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LabellingTaskResponseMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LabellingTaskResponseMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LabellingTaskResponse nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LabellingTaskResponseMutation) ResetField(name string) error {
+	switch name {
+	case labellingtaskresponse.FieldResponse:
+		m.ResetResponse()
+		return nil
+	}
+	return fmt.Errorf("unknown LabellingTaskResponse field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LabellingTaskResponseMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.task != nil {
+		edges = append(edges, labellingtaskresponse.EdgeTask)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LabellingTaskResponseMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case labellingtaskresponse.EdgeTask:
+		if id := m.task; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LabellingTaskResponseMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LabellingTaskResponseMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LabellingTaskResponseMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedtask {
+		edges = append(edges, labellingtaskresponse.EdgeTask)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LabellingTaskResponseMutation) EdgeCleared(name string) bool {
+	switch name {
+	case labellingtaskresponse.EdgeTask:
+		return m.clearedtask
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LabellingTaskResponseMutation) ClearEdge(name string) error {
+	switch name {
+	case labellingtaskresponse.EdgeTask:
+		m.ClearTask()
+		return nil
+	}
+	return fmt.Errorf("unknown LabellingTaskResponse unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LabellingTaskResponseMutation) ResetEdge(name string) error {
+	switch name {
+	case labellingtaskresponse.EdgeTask:
+		m.ResetTask()
+		return nil
+	}
+	return fmt.Errorf("unknown LabellingTaskResponse edge %s", name)
 }

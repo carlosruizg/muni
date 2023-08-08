@@ -19,11 +19,46 @@ var (
 		Columns:    ExpertsColumns,
 		PrimaryKey: []*schema.Column{ExpertsColumns[0]},
 	}
+	// LabellingTasksColumns holds the columns for the "labelling_tasks" table.
+	LabellingTasksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "title", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+	}
+	// LabellingTasksTable holds the schema information for the "labelling_tasks" table.
+	LabellingTasksTable = &schema.Table{
+		Name:       "labelling_tasks",
+		Columns:    LabellingTasksColumns,
+		PrimaryKey: []*schema.Column{LabellingTasksColumns[0]},
+	}
+	// LabellingTaskResponsesColumns holds the columns for the "labelling_task_responses" table.
+	LabellingTaskResponsesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "response", Type: field.TypeString},
+		{Name: "labelling_task_responses", Type: field.TypeInt, Nullable: true},
+	}
+	// LabellingTaskResponsesTable holds the schema information for the "labelling_task_responses" table.
+	LabellingTaskResponsesTable = &schema.Table{
+		Name:       "labelling_task_responses",
+		Columns:    LabellingTaskResponsesColumns,
+		PrimaryKey: []*schema.Column{LabellingTaskResponsesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "labelling_task_responses_labelling_tasks_responses",
+				Columns:    []*schema.Column{LabellingTaskResponsesColumns[2]},
+				RefColumns: []*schema.Column{LabellingTasksColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ExpertsTable,
+		LabellingTasksTable,
+		LabellingTaskResponsesTable,
 	}
 )
 
 func init() {
+	LabellingTaskResponsesTable.ForeignKeys[0].RefTable = LabellingTasksTable
 }

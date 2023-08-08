@@ -21,6 +21,30 @@ func (f ExpertFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExpertMutation", m)
 }
 
+// The LabellingTaskFunc type is an adapter to allow the use of ordinary
+// function as LabellingTask mutator.
+type LabellingTaskFunc func(context.Context, *ent.LabellingTaskMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LabellingTaskFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LabellingTaskMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LabellingTaskMutation", m)
+}
+
+// The LabellingTaskResponseFunc type is an adapter to allow the use of ordinary
+// function as LabellingTaskResponse mutator.
+type LabellingTaskResponseFunc func(context.Context, *ent.LabellingTaskResponseMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LabellingTaskResponseFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LabellingTaskResponseMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LabellingTaskResponseMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, ent.Mutation) bool
 

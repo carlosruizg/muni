@@ -8,3 +8,9 @@ import (
 
 // Expert is the predicate function for expert builders.
 type Expert func(*sql.Selector)
+
+// LabellingTask is the predicate function for labellingtask builders.
+type LabellingTask func(*sql.Selector)
+
+// LabellingTaskResponse is the predicate function for labellingtaskresponse builders.
+type LabellingTaskResponse func(*sql.Selector)

@@ -8,6 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/carlosruizg/muni/ent/expert"
+	"github.com/carlosruizg/muni/ent/labellingtask"
+	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
 )
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
@@ -56,6 +58,161 @@ type expertPaginateArgs struct {
 
 func newExpertPaginateArgs(rv map[string]any) *expertPaginateArgs {
 	args := &expertPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (lt *LabellingTaskQuery) CollectFields(ctx context.Context, satisfies ...string) (*LabellingTaskQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return lt, nil
+	}
+	if err := lt.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return lt, nil
+}
+
+func (lt *LabellingTaskQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(labellingtask.Columns))
+		selectedFields = []string{labellingtask.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "responses":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&LabellingTaskResponseClient{config: lt.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, labellingtaskresponseImplementors)...); err != nil {
+				return err
+			}
+			lt.WithNamedResponses(alias, func(wq *LabellingTaskResponseQuery) {
+				*wq = *query
+			})
+		case "title":
+			if _, ok := fieldSeen[labellingtask.FieldTitle]; !ok {
+				selectedFields = append(selectedFields, labellingtask.FieldTitle)
+				fieldSeen[labellingtask.FieldTitle] = struct{}{}
+			}
+		case "description":
+			if _, ok := fieldSeen[labellingtask.FieldDescription]; !ok {
+				selectedFields = append(selectedFields, labellingtask.FieldDescription)
+				fieldSeen[labellingtask.FieldDescription] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		lt.Select(selectedFields...)
+	}
+	return nil
+}
+
+type labellingtaskPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []LabellingTaskPaginateOption
+}
+
+func newLabellingTaskPaginateArgs(rv map[string]any) *labellingtaskPaginateArgs {
+	args := &labellingtaskPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ltr *LabellingTaskResponseQuery) CollectFields(ctx context.Context, satisfies ...string) (*LabellingTaskResponseQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ltr, nil
+	}
+	if err := ltr.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ltr, nil
+}
+
+func (ltr *LabellingTaskResponseQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(labellingtaskresponse.Columns))
+		selectedFields = []string{labellingtaskresponse.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "task":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&LabellingTaskClient{config: ltr.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, labellingtaskImplementors)...); err != nil {
+				return err
+			}
+			ltr.withTask = query
+		case "response":
+			if _, ok := fieldSeen[labellingtaskresponse.FieldResponse]; !ok {
+				selectedFields = append(selectedFields, labellingtaskresponse.FieldResponse)
+				fieldSeen[labellingtaskresponse.FieldResponse] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		ltr.Select(selectedFields...)
+	}
+	return nil
+}
+
+type labellingtaskresponsePaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []LabellingTaskResponsePaginateOption
+}
+
+func newLabellingTaskResponsePaginateArgs(rv map[string]any) *labellingtaskresponsePaginateArgs {
+	args := &labellingtaskresponsePaginateArgs{}
 	if rv == nil {
 		return args
 	}

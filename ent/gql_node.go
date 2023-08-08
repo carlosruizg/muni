@@ -14,6 +14,8 @@ import (
 	"entgo.io/ent/dialect/sql/schema"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/carlosruizg/muni/ent/expert"
+	"github.com/carlosruizg/muni/ent/labellingtask"
+	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
 	"github.com/hashicorp/go-multierror"
 	"golang.org/x/sync/semaphore"
 )
@@ -27,6 +29,16 @@ var expertImplementors = []string{"Expert", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Expert) IsNode() {}
+
+var labellingtaskImplementors = []string{"LabellingTask", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*LabellingTask) IsNode() {}
+
+var labellingtaskresponseImplementors = []string{"LabellingTaskResponse", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*LabellingTaskResponse) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -90,6 +102,30 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 		query := c.Expert.Query().
 			Where(expert.ID(id))
 		query, err := query.CollectFields(ctx, expertImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case labellingtask.Table:
+		query := c.LabellingTask.Query().
+			Where(labellingtask.ID(id))
+		query, err := query.CollectFields(ctx, labellingtaskImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case labellingtaskresponse.Table:
+		query := c.LabellingTaskResponse.Query().
+			Where(labellingtaskresponse.ID(id))
+		query, err := query.CollectFields(ctx, labellingtaskresponseImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -175,6 +211,38 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.Expert.Query().
 			Where(expert.IDIn(ids...))
 		query, err := query.CollectFields(ctx, expertImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case labellingtask.Table:
+		query := c.LabellingTask.Query().
+			Where(labellingtask.IDIn(ids...))
+		query, err := query.CollectFields(ctx, labellingtaskImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case labellingtaskresponse.Table:
+		query := c.LabellingTaskResponse.Query().
+			Where(labellingtaskresponse.IDIn(ids...))
+		query, err := query.CollectFields(ctx, labellingtaskresponseImplementors...)
 		if err != nil {
 			return nil, err
 		}

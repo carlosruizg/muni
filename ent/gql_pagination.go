@@ -12,6 +12,8 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/errcode"
 	"github.com/carlosruizg/muni/ent/expert"
+	"github.com/carlosruizg/muni/ent/labellingtask"
+	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
@@ -340,5 +342,501 @@ func (e *Expert) ToEdge(order *ExpertOrder) *ExpertEdge {
 	return &ExpertEdge{
 		Node:   e,
 		Cursor: order.Field.toCursor(e),
+	}
+}
+
+// LabellingTaskEdge is the edge representation of LabellingTask.
+type LabellingTaskEdge struct {
+	Node   *LabellingTask `json:"node"`
+	Cursor Cursor         `json:"cursor"`
+}
+
+// LabellingTaskConnection is the connection containing edges to LabellingTask.
+type LabellingTaskConnection struct {
+	Edges      []*LabellingTaskEdge `json:"edges"`
+	PageInfo   PageInfo             `json:"pageInfo"`
+	TotalCount int                  `json:"totalCount"`
+}
+
+func (c *LabellingTaskConnection) build(nodes []*LabellingTask, pager *labellingtaskPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *LabellingTask
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *LabellingTask {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *LabellingTask {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*LabellingTaskEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &LabellingTaskEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// LabellingTaskPaginateOption enables pagination customization.
+type LabellingTaskPaginateOption func(*labellingtaskPager) error
+
+// WithLabellingTaskOrder configures pagination ordering.
+func WithLabellingTaskOrder(order *LabellingTaskOrder) LabellingTaskPaginateOption {
+	if order == nil {
+		order = DefaultLabellingTaskOrder
+	}
+	o := *order
+	return func(pager *labellingtaskPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultLabellingTaskOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithLabellingTaskFilter configures pagination filter.
+func WithLabellingTaskFilter(filter func(*LabellingTaskQuery) (*LabellingTaskQuery, error)) LabellingTaskPaginateOption {
+	return func(pager *labellingtaskPager) error {
+		if filter == nil {
+			return errors.New("LabellingTaskQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type labellingtaskPager struct {
+	reverse bool
+	order   *LabellingTaskOrder
+	filter  func(*LabellingTaskQuery) (*LabellingTaskQuery, error)
+}
+
+func newLabellingTaskPager(opts []LabellingTaskPaginateOption, reverse bool) (*labellingtaskPager, error) {
+	pager := &labellingtaskPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultLabellingTaskOrder
+	}
+	return pager, nil
+}
+
+func (p *labellingtaskPager) applyFilter(query *LabellingTaskQuery) (*LabellingTaskQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *labellingtaskPager) toCursor(lt *LabellingTask) Cursor {
+	return p.order.Field.toCursor(lt)
+}
+
+func (p *labellingtaskPager) applyCursors(query *LabellingTaskQuery, after, before *Cursor) (*LabellingTaskQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultLabellingTaskOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *labellingtaskPager) applyOrder(query *LabellingTaskQuery) *LabellingTaskQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultLabellingTaskOrder.Field {
+		query = query.Order(DefaultLabellingTaskOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *labellingtaskPager) orderExpr(query *LabellingTaskQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultLabellingTaskOrder.Field {
+			b.Comma().Ident(DefaultLabellingTaskOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to LabellingTask.
+func (lt *LabellingTaskQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...LabellingTaskPaginateOption,
+) (*LabellingTaskConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newLabellingTaskPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if lt, err = pager.applyFilter(lt); err != nil {
+		return nil, err
+	}
+	conn := &LabellingTaskConnection{Edges: []*LabellingTaskEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := lt.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if lt, err = pager.applyCursors(lt, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		lt.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := lt.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	lt = pager.applyOrder(lt)
+	nodes, err := lt.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// LabellingTaskOrderField defines the ordering field of LabellingTask.
+type LabellingTaskOrderField struct {
+	// Value extracts the ordering value from the given LabellingTask.
+	Value    func(*LabellingTask) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) labellingtask.OrderOption
+	toCursor func(*LabellingTask) Cursor
+}
+
+// LabellingTaskOrder defines the ordering of LabellingTask.
+type LabellingTaskOrder struct {
+	Direction OrderDirection           `json:"direction"`
+	Field     *LabellingTaskOrderField `json:"field"`
+}
+
+// DefaultLabellingTaskOrder is the default ordering of LabellingTask.
+var DefaultLabellingTaskOrder = &LabellingTaskOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &LabellingTaskOrderField{
+		Value: func(lt *LabellingTask) (ent.Value, error) {
+			return lt.ID, nil
+		},
+		column: labellingtask.FieldID,
+		toTerm: labellingtask.ByID,
+		toCursor: func(lt *LabellingTask) Cursor {
+			return Cursor{ID: lt.ID}
+		},
+	},
+}
+
+// ToEdge converts LabellingTask into LabellingTaskEdge.
+func (lt *LabellingTask) ToEdge(order *LabellingTaskOrder) *LabellingTaskEdge {
+	if order == nil {
+		order = DefaultLabellingTaskOrder
+	}
+	return &LabellingTaskEdge{
+		Node:   lt,
+		Cursor: order.Field.toCursor(lt),
+	}
+}
+
+// LabellingTaskResponseEdge is the edge representation of LabellingTaskResponse.
+type LabellingTaskResponseEdge struct {
+	Node   *LabellingTaskResponse `json:"node"`
+	Cursor Cursor                 `json:"cursor"`
+}
+
+// LabellingTaskResponseConnection is the connection containing edges to LabellingTaskResponse.
+type LabellingTaskResponseConnection struct {
+	Edges      []*LabellingTaskResponseEdge `json:"edges"`
+	PageInfo   PageInfo                     `json:"pageInfo"`
+	TotalCount int                          `json:"totalCount"`
+}
+
+func (c *LabellingTaskResponseConnection) build(nodes []*LabellingTaskResponse, pager *labellingtaskresponsePager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *LabellingTaskResponse
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *LabellingTaskResponse {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *LabellingTaskResponse {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*LabellingTaskResponseEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &LabellingTaskResponseEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// LabellingTaskResponsePaginateOption enables pagination customization.
+type LabellingTaskResponsePaginateOption func(*labellingtaskresponsePager) error
+
+// WithLabellingTaskResponseOrder configures pagination ordering.
+func WithLabellingTaskResponseOrder(order *LabellingTaskResponseOrder) LabellingTaskResponsePaginateOption {
+	if order == nil {
+		order = DefaultLabellingTaskResponseOrder
+	}
+	o := *order
+	return func(pager *labellingtaskresponsePager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultLabellingTaskResponseOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithLabellingTaskResponseFilter configures pagination filter.
+func WithLabellingTaskResponseFilter(filter func(*LabellingTaskResponseQuery) (*LabellingTaskResponseQuery, error)) LabellingTaskResponsePaginateOption {
+	return func(pager *labellingtaskresponsePager) error {
+		if filter == nil {
+			return errors.New("LabellingTaskResponseQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type labellingtaskresponsePager struct {
+	reverse bool
+	order   *LabellingTaskResponseOrder
+	filter  func(*LabellingTaskResponseQuery) (*LabellingTaskResponseQuery, error)
+}
+
+func newLabellingTaskResponsePager(opts []LabellingTaskResponsePaginateOption, reverse bool) (*labellingtaskresponsePager, error) {
+	pager := &labellingtaskresponsePager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultLabellingTaskResponseOrder
+	}
+	return pager, nil
+}
+
+func (p *labellingtaskresponsePager) applyFilter(query *LabellingTaskResponseQuery) (*LabellingTaskResponseQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *labellingtaskresponsePager) toCursor(ltr *LabellingTaskResponse) Cursor {
+	return p.order.Field.toCursor(ltr)
+}
+
+func (p *labellingtaskresponsePager) applyCursors(query *LabellingTaskResponseQuery, after, before *Cursor) (*LabellingTaskResponseQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultLabellingTaskResponseOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *labellingtaskresponsePager) applyOrder(query *LabellingTaskResponseQuery) *LabellingTaskResponseQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultLabellingTaskResponseOrder.Field {
+		query = query.Order(DefaultLabellingTaskResponseOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *labellingtaskresponsePager) orderExpr(query *LabellingTaskResponseQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultLabellingTaskResponseOrder.Field {
+			b.Comma().Ident(DefaultLabellingTaskResponseOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to LabellingTaskResponse.
+func (ltr *LabellingTaskResponseQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...LabellingTaskResponsePaginateOption,
+) (*LabellingTaskResponseConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newLabellingTaskResponsePager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if ltr, err = pager.applyFilter(ltr); err != nil {
+		return nil, err
+	}
+	conn := &LabellingTaskResponseConnection{Edges: []*LabellingTaskResponseEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := ltr.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if ltr, err = pager.applyCursors(ltr, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		ltr.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ltr.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	ltr = pager.applyOrder(ltr)
+	nodes, err := ltr.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// LabellingTaskResponseOrderField defines the ordering field of LabellingTaskResponse.
+type LabellingTaskResponseOrderField struct {
+	// Value extracts the ordering value from the given LabellingTaskResponse.
+	Value    func(*LabellingTaskResponse) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) labellingtaskresponse.OrderOption
+	toCursor func(*LabellingTaskResponse) Cursor
+}
+
+// LabellingTaskResponseOrder defines the ordering of LabellingTaskResponse.
+type LabellingTaskResponseOrder struct {
+	Direction OrderDirection                   `json:"direction"`
+	Field     *LabellingTaskResponseOrderField `json:"field"`
+}
+
+// DefaultLabellingTaskResponseOrder is the default ordering of LabellingTaskResponse.
+var DefaultLabellingTaskResponseOrder = &LabellingTaskResponseOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &LabellingTaskResponseOrderField{
+		Value: func(ltr *LabellingTaskResponse) (ent.Value, error) {
+			return ltr.ID, nil
+		},
+		column: labellingtaskresponse.FieldID,
+		toTerm: labellingtaskresponse.ByID,
+		toCursor: func(ltr *LabellingTaskResponse) Cursor {
+			return Cursor{ID: ltr.ID}
+		},
+	},
+}
+
+// ToEdge converts LabellingTaskResponse into LabellingTaskResponseEdge.
+func (ltr *LabellingTaskResponse) ToEdge(order *LabellingTaskResponseOrder) *LabellingTaskResponseEdge {
+	if order == nil {
+		order = DefaultLabellingTaskResponseOrder
+	}
+	return &LabellingTaskResponseEdge{
+		Node:   ltr,
+		Cursor: order.Field.toCursor(ltr),
 	}
 }

@@ -14,6 +14,10 @@ type Tx struct {
 	config
 	// Expert is the client for interacting with the Expert builders.
 	Expert *ExpertClient
+	// LabellingTask is the client for interacting with the LabellingTask builders.
+	LabellingTask *LabellingTaskClient
+	// LabellingTaskResponse is the client for interacting with the LabellingTaskResponse builders.
+	LabellingTaskResponse *LabellingTaskResponseClient
 
 	// lazily loaded.
 	client     *Client
@@ -146,6 +150,8 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Expert = NewExpertClient(tx.config)
+	tx.LabellingTask = NewLabellingTaskClient(tx.config)
+	tx.LabellingTaskResponse = NewLabellingTaskResponseClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.
