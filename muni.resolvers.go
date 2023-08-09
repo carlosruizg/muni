@@ -6,6 +6,7 @@ package muni
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/carlosruizg/muni/ent"
 )
@@ -13,6 +14,16 @@ import (
 // CreateExpert is the resolver for the createExpert field.
 func (r *mutationResolver) CreateExpert(ctx context.Context, input ent.CreateExpertInput) (*ent.Expert, error) {
 	return r.client.Expert.Create().SetInput(input).Save(ctx)
+}
+
+// CreateLabellingTask is the resolver for the createLabellingTask field.
+func (r *mutationResolver) CreateLabellingTask(ctx context.Context, input ent.CreateLabellingTaskInput) (*ent.LabellingTask, error) {
+	panic(fmt.Errorf("not implemented: CreateLabellingTask - createLabellingTask"))
+}
+
+// CreateLabellingResponse is the resolver for the createLabellingResponse field.
+func (r *mutationResolver) CreateLabellingResponse(ctx context.Context, input ent.CreateLabellingTaskResponseInput) (*ent.LabellingTaskResponse, error) {
+	panic(fmt.Errorf("not implemented: CreateLabellingResponse - createLabellingResponse"))
 }
 
 // Mutation returns MutationResolver implementation.

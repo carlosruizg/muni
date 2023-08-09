@@ -28,12 +28,12 @@ func (r *queryResolver) Experts(ctx context.Context) ([]*ent.Expert, error) {
 
 // LabellingTasks is the resolver for the labellingTasks field.
 func (r *queryResolver) LabellingTasks(ctx context.Context) ([]*ent.LabellingTask, error) {
-	panic(fmt.Errorf("not implemented: LabellingTasks - labellingTasks"))
+	return r.client.LabellingTask.Query().All(ctx)
 }
 
 // LabellingTaskResponses is the resolver for the labellingTaskResponses field.
 func (r *queryResolver) LabellingTaskResponses(ctx context.Context) ([]*ent.LabellingTaskResponse, error) {
-	panic(fmt.Errorf("not implemented: LabellingTaskResponses - labellingTaskResponses"))
+	return r.client.LabellingTaskResponse.Query().All(ctx)
 }
 
 // Query returns QueryResolver implementation.

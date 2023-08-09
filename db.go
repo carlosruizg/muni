@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
@@ -16,7 +17,9 @@ type DB struct {
 }
 
 func NewDB() (*DB, error) {
-	client := open("postgresql://carlosrg:@127.0.0.1/muni")
+	dbPassword := os.Getenv("MUNI_DATABASE_PASSWORD")
+	dbUrl := fmt.Sprintf("postgresql://muni_app:%s@127.0.0.1/muni", dbPassword)
+	client := open(dbUrl)
 	// Run the auto migration tool.
 	if err := client.Schema.Create(context.Background()); err != nil {
 		return nil, fmt.Errorf("failed creating schema resources: %v", err)

@@ -65,7 +65,9 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateExpert func(childComplexity int, input ent.CreateExpertInput) int
+		CreateExpert            func(childComplexity int, input ent.CreateExpertInput) int
+		CreateLabellingResponse func(childComplexity int, input ent.CreateLabellingTaskResponseInput) int
+		CreateLabellingTask     func(childComplexity int, input ent.CreateLabellingTaskInput) int
 	}
 
 	PageInfo struct {
@@ -86,6 +88,8 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateExpert(ctx context.Context, input ent.CreateExpertInput) (*ent.Expert, error)
+	CreateLabellingTask(ctx context.Context, input ent.CreateLabellingTaskInput) (*ent.LabellingTask, error)
+	CreateLabellingResponse(ctx context.Context, input ent.CreateLabellingTaskResponseInput) (*ent.LabellingTaskResponse, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id int) (ent.Noder, error)
@@ -184,6 +188,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateExpert(childComplexity, args["input"].(ent.CreateExpertInput)), true
+
+	case "Mutation.createLabellingResponse":
+		if e.complexity.Mutation.CreateLabellingResponse == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createLabellingResponse_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateLabellingResponse(childComplexity, args["input"].(ent.CreateLabellingTaskResponseInput)), true
+
+	case "Mutation.createLabellingTask":
+		if e.complexity.Mutation.CreateLabellingTask == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createLabellingTask_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateLabellingTask(childComplexity, args["input"].(ent.CreateLabellingTaskInput)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -365,7 +393,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(parsedSchema, parsedSchema.Types[name]), nil
 }
 
-//go:embed "ent.graphql" "expert.graphql"
+//go:embed "ent.graphql" "muni.graphql"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -378,7 +406,7 @@ func sourceData(filename string) string {
 
 var sources = []*ast.Source{
 	{Name: "ent.graphql", Input: sourceData("ent.graphql"), BuiltIn: false},
-	{Name: "expert.graphql", Input: sourceData("expert.graphql"), BuiltIn: false},
+	{Name: "muni.graphql", Input: sourceData("muni.graphql"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -393,6 +421,36 @@ func (ec *executionContext) field_Mutation_createExpert_args(ctx context.Context
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCreateExpertInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateExpertInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createLabellingResponse_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.CreateLabellingTaskResponseInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateLabellingTaskResponseInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateLabellingTaskResponseInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createLabellingTask_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.CreateLabellingTaskInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateLabellingTaskInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateLabellingTaskInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -941,6 +999,128 @@ func (ec *executionContext) fieldContext_Mutation_createExpert(ctx context.Conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createExpert_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createLabellingTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createLabellingTask(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateLabellingTask(rctx, fc.Args["input"].(ent.CreateLabellingTaskInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.LabellingTask)
+	fc.Result = res
+	return ec.marshalOLabellingTask2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTask(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createLabellingTask(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_LabellingTask_id(ctx, field)
+			case "title":
+				return ec.fieldContext_LabellingTask_title(ctx, field)
+			case "description":
+				return ec.fieldContext_LabellingTask_description(ctx, field)
+			case "responses":
+				return ec.fieldContext_LabellingTask_responses(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LabellingTask", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createLabellingTask_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createLabellingResponse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createLabellingResponse(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateLabellingResponse(rctx, fc.Args["input"].(ent.CreateLabellingTaskResponseInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.LabellingTaskResponse)
+	fc.Result = res
+	return ec.marshalOLabellingTaskResponse2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTaskResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createLabellingResponse(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_LabellingTaskResponse_id(ctx, field)
+			case "response":
+				return ec.fieldContext_LabellingTaskResponse_response(ctx, field)
+			case "task":
+				return ec.fieldContext_LabellingTaskResponse_task(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LabellingTaskResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createLabellingResponse_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3651,6 +3831,14 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createExpert(ctx, field)
 			})
+		case "createLabellingTask":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createLabellingTask(ctx, field)
+			})
+		case "createLabellingResponse":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createLabellingResponse(ctx, field)
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4222,6 +4410,16 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 
 func (ec *executionContext) unmarshalNCreateExpertInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateExpertInput(ctx context.Context, v interface{}) (ent.CreateExpertInput, error) {
 	res, err := ec.unmarshalInputCreateExpertInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreateLabellingTaskInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateLabellingTaskInput(ctx context.Context, v interface{}) (ent.CreateLabellingTaskInput, error) {
+	res, err := ec.unmarshalInputCreateLabellingTaskInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreateLabellingTaskResponseInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateLabellingTaskResponseInput(ctx context.Context, v interface{}) (ent.CreateLabellingTaskResponseInput, error) {
+	res, err := ec.unmarshalInputCreateLabellingTaskResponseInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -4895,6 +5093,13 @@ func (ec *executionContext) marshalOLabellingTaskResponse2ᚕᚖgithubᚗcomᚋc
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalOLabellingTaskResponse2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTaskResponse(ctx context.Context, sel ast.SelectionSet, v *ent.LabellingTaskResponse) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._LabellingTaskResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalONode2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v ent.Noder) graphql.Marshaler {
