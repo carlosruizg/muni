@@ -30,13 +30,16 @@ type LabellingTask struct {
 type LabellingTaskEdges struct {
 	// Responses holds the value of the responses edge.
 	Responses []*LabellingTaskResponse `json:"responses,omitempty"`
+	// ExpertRequirements holds the value of the expert_requirements edge.
+	ExpertRequirements []*Qualification `json:"expert_requirements,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
 
-	namedResponses map[string][]*LabellingTaskResponse
+	namedResponses          map[string][]*LabellingTaskResponse
+	namedExpertRequirements map[string][]*Qualification
 }
 
 // ResponsesOrErr returns the Responses value or an error if the edge
@@ -46,6 +49,15 @@ func (e LabellingTaskEdges) ResponsesOrErr() ([]*LabellingTaskResponse, error) {
 		return e.Responses, nil
 	}
 	return nil, &NotLoadedError{edge: "responses"}
+}
+
+// ExpertRequirementsOrErr returns the ExpertRequirements value or an error if the edge
+// was not loaded in eager-loading.
+func (e LabellingTaskEdges) ExpertRequirementsOrErr() ([]*Qualification, error) {
+	if e.loadedTypes[1] {
+		return e.ExpertRequirements, nil
+	}
+	return nil, &NotLoadedError{edge: "expert_requirements"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -108,6 +120,11 @@ func (lt *LabellingTask) QueryResponses() *LabellingTaskResponseQuery {
 	return NewLabellingTaskClient(lt.config).QueryResponses(lt)
 }
 
+// QueryExpertRequirements queries the "expert_requirements" edge of the LabellingTask entity.
+func (lt *LabellingTask) QueryExpertRequirements() *QualificationQuery {
+	return NewLabellingTaskClient(lt.config).QueryExpertRequirements(lt)
+}
+
 // Update returns a builder for updating this LabellingTask.
 // Note that you need to call LabellingTask.Unwrap() before calling this method if this LabellingTask
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -161,6 +178,30 @@ func (lt *LabellingTask) appendNamedResponses(name string, edges ...*LabellingTa
 		lt.Edges.namedResponses[name] = []*LabellingTaskResponse{}
 	} else {
 		lt.Edges.namedResponses[name] = append(lt.Edges.namedResponses[name], edges...)
+	}
+}
+
+// NamedExpertRequirements returns the ExpertRequirements named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (lt *LabellingTask) NamedExpertRequirements(name string) ([]*Qualification, error) {
+	if lt.Edges.namedExpertRequirements == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := lt.Edges.namedExpertRequirements[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (lt *LabellingTask) appendNamedExpertRequirements(name string, edges ...*Qualification) {
+	if lt.Edges.namedExpertRequirements == nil {
+		lt.Edges.namedExpertRequirements = make(map[string][]*Qualification)
+	}
+	if len(edges) == 0 {
+		lt.Edges.namedExpertRequirements[name] = []*Qualification{}
+	} else {
+		lt.Edges.namedExpertRequirements[name] = append(lt.Edges.namedExpertRequirements[name], edges...)
 	}
 }
 

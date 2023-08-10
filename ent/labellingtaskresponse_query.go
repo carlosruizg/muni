@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
 	"github.com/carlosruizg/muni/ent/predicate"
@@ -23,6 +24,7 @@ type LabellingTaskResponseQuery struct {
 	inters     []Interceptor
 	predicates []predicate.LabellingTaskResponse
 	withTask   *LabellingTaskQuery
+	withExpert *ExpertQuery
 	withFKs    bool
 	modifiers  []func(*sql.Selector)
 	loadTotal  []func(context.Context, []*LabellingTaskResponse) error
@@ -77,6 +79,28 @@ func (ltrq *LabellingTaskResponseQuery) QueryTask() *LabellingTaskQuery {
 			sqlgraph.From(labellingtaskresponse.Table, labellingtaskresponse.FieldID, selector),
 			sqlgraph.To(labellingtask.Table, labellingtask.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, labellingtaskresponse.TaskTable, labellingtaskresponse.TaskColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ltrq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryExpert chains the current query on the "expert" edge.
+func (ltrq *LabellingTaskResponseQuery) QueryExpert() *ExpertQuery {
+	query := (&ExpertClient{config: ltrq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ltrq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := ltrq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(labellingtaskresponse.Table, labellingtaskresponse.FieldID, selector),
+			sqlgraph.To(expert.Table, expert.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, labellingtaskresponse.ExpertTable, labellingtaskresponse.ExpertColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(ltrq.driver.Dialect(), step)
 		return fromU, nil
@@ -277,6 +301,7 @@ func (ltrq *LabellingTaskResponseQuery) Clone() *LabellingTaskResponseQuery {
 		inters:     append([]Interceptor{}, ltrq.inters...),
 		predicates: append([]predicate.LabellingTaskResponse{}, ltrq.predicates...),
 		withTask:   ltrq.withTask.Clone(),
+		withExpert: ltrq.withExpert.Clone(),
 		// clone intermediate query.
 		sql:  ltrq.sql.Clone(),
 		path: ltrq.path,
@@ -291,6 +316,17 @@ func (ltrq *LabellingTaskResponseQuery) WithTask(opts ...func(*LabellingTaskQuer
 		opt(query)
 	}
 	ltrq.withTask = query
+	return ltrq
+}
+
+// WithExpert tells the query-builder to eager-load the nodes that are connected to
+// the "expert" edge. The optional arguments are used to configure the query builder of the edge.
+func (ltrq *LabellingTaskResponseQuery) WithExpert(opts ...func(*ExpertQuery)) *LabellingTaskResponseQuery {
+	query := (&ExpertClient{config: ltrq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	ltrq.withExpert = query
 	return ltrq
 }
 
@@ -373,11 +409,12 @@ func (ltrq *LabellingTaskResponseQuery) sqlAll(ctx context.Context, hooks ...que
 		nodes       = []*LabellingTaskResponse{}
 		withFKs     = ltrq.withFKs
 		_spec       = ltrq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			ltrq.withTask != nil,
+			ltrq.withExpert != nil,
 		}
 	)
-	if ltrq.withTask != nil {
+	if ltrq.withTask != nil || ltrq.withExpert != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -407,6 +444,12 @@ func (ltrq *LabellingTaskResponseQuery) sqlAll(ctx context.Context, hooks ...que
 	if query := ltrq.withTask; query != nil {
 		if err := ltrq.loadTask(ctx, query, nodes, nil,
 			func(n *LabellingTaskResponse, e *LabellingTask) { n.Edges.Task = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := ltrq.withExpert; query != nil {
+		if err := ltrq.loadExpert(ctx, query, nodes, nil,
+			func(n *LabellingTaskResponse, e *Expert) { n.Edges.Expert = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -443,6 +486,38 @@ func (ltrq *LabellingTaskResponseQuery) loadTask(ctx context.Context, query *Lab
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "labelling_task_responses" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (ltrq *LabellingTaskResponseQuery) loadExpert(ctx context.Context, query *ExpertQuery, nodes []*LabellingTaskResponse, init func(*LabellingTaskResponse), assign func(*LabellingTaskResponse, *Expert)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*LabellingTaskResponse)
+	for i := range nodes {
+		if nodes[i].expert_task_responses == nil {
+			continue
+		}
+		fk := *nodes[i].expert_task_responses
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(expert.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "expert_task_responses" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

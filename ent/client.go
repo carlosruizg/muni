@@ -17,6 +17,7 @@ import (
 	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
+	"github.com/carlosruizg/muni/ent/qualification"
 )
 
 // Client is the client that holds all ent builders.
@@ -30,6 +31,8 @@ type Client struct {
 	LabellingTask *LabellingTaskClient
 	// LabellingTaskResponse is the client for interacting with the LabellingTaskResponse builders.
 	LabellingTaskResponse *LabellingTaskResponseClient
+	// Qualification is the client for interacting with the Qualification builders.
+	Qualification *QualificationClient
 	// additional fields for node api
 	tables tables
 }
@@ -48,6 +51,7 @@ func (c *Client) init() {
 	c.Expert = NewExpertClient(c.config)
 	c.LabellingTask = NewLabellingTaskClient(c.config)
 	c.LabellingTaskResponse = NewLabellingTaskResponseClient(c.config)
+	c.Qualification = NewQualificationClient(c.config)
 }
 
 type (
@@ -133,6 +137,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Expert:                NewExpertClient(cfg),
 		LabellingTask:         NewLabellingTaskClient(cfg),
 		LabellingTaskResponse: NewLabellingTaskResponseClient(cfg),
+		Qualification:         NewQualificationClient(cfg),
 	}, nil
 }
 
@@ -155,6 +160,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Expert:                NewExpertClient(cfg),
 		LabellingTask:         NewLabellingTaskClient(cfg),
 		LabellingTaskResponse: NewLabellingTaskResponseClient(cfg),
+		Qualification:         NewQualificationClient(cfg),
 	}, nil
 }
 
@@ -186,6 +192,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Expert.Use(hooks...)
 	c.LabellingTask.Use(hooks...)
 	c.LabellingTaskResponse.Use(hooks...)
+	c.Qualification.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
@@ -194,6 +201,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Expert.Intercept(interceptors...)
 	c.LabellingTask.Intercept(interceptors...)
 	c.LabellingTaskResponse.Intercept(interceptors...)
+	c.Qualification.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -205,6 +213,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.LabellingTask.mutate(ctx, m)
 	case *LabellingTaskResponseMutation:
 		return c.LabellingTaskResponse.mutate(ctx, m)
+	case *QualificationMutation:
+		return c.Qualification.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -301,6 +311,38 @@ func (c *ExpertClient) GetX(ctx context.Context, id int) *Expert {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryTaskResponses queries the task_responses edge of a Expert.
+func (c *ExpertClient) QueryTaskResponses(e *Expert) *LabellingTaskResponseQuery {
+	query := (&LabellingTaskResponseClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(expert.Table, expert.FieldID, id),
+			sqlgraph.To(labellingtaskresponse.Table, labellingtaskresponse.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, expert.TaskResponsesTable, expert.TaskResponsesColumn),
+		)
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryQualifications queries the qualifications edge of a Expert.
+func (c *ExpertClient) QueryQualifications(e *Expert) *QualificationQuery {
+	query := (&QualificationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(expert.Table, expert.FieldID, id),
+			sqlgraph.To(qualification.Table, qualification.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, expert.QualificationsTable, expert.QualificationsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -430,6 +472,22 @@ func (c *LabellingTaskClient) QueryResponses(lt *LabellingTask) *LabellingTaskRe
 			sqlgraph.From(labellingtask.Table, labellingtask.FieldID, id),
 			sqlgraph.To(labellingtaskresponse.Table, labellingtaskresponse.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, labellingtask.ResponsesTable, labellingtask.ResponsesColumn),
+		)
+		fromV = sqlgraph.Neighbors(lt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryExpertRequirements queries the expert_requirements edge of a LabellingTask.
+func (c *LabellingTaskClient) QueryExpertRequirements(lt *LabellingTask) *QualificationQuery {
+	query := (&QualificationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(labellingtask.Table, labellingtask.FieldID, id),
+			sqlgraph.To(qualification.Table, qualification.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, labellingtask.ExpertRequirementsTable, labellingtask.ExpertRequirementsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(lt.driver.Dialect(), step)
 		return fromV, nil
@@ -571,6 +629,22 @@ func (c *LabellingTaskResponseClient) QueryTask(ltr *LabellingTaskResponse) *Lab
 	return query
 }
 
+// QueryExpert queries the expert edge of a LabellingTaskResponse.
+func (c *LabellingTaskResponseClient) QueryExpert(ltr *LabellingTaskResponse) *ExpertQuery {
+	query := (&ExpertClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ltr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(labellingtaskresponse.Table, labellingtaskresponse.FieldID, id),
+			sqlgraph.To(expert.Table, expert.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, labellingtaskresponse.ExpertTable, labellingtaskresponse.ExpertColumn),
+		)
+		fromV = sqlgraph.Neighbors(ltr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *LabellingTaskResponseClient) Hooks() []Hook {
 	return c.hooks.LabellingTaskResponse
@@ -596,12 +670,162 @@ func (c *LabellingTaskResponseClient) mutate(ctx context.Context, m *LabellingTa
 	}
 }
 
+// QualificationClient is a client for the Qualification schema.
+type QualificationClient struct {
+	config
+}
+
+// NewQualificationClient returns a client for the Qualification from the given config.
+func NewQualificationClient(c config) *QualificationClient {
+	return &QualificationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `qualification.Hooks(f(g(h())))`.
+func (c *QualificationClient) Use(hooks ...Hook) {
+	c.hooks.Qualification = append(c.hooks.Qualification, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `qualification.Intercept(f(g(h())))`.
+func (c *QualificationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Qualification = append(c.inters.Qualification, interceptors...)
+}
+
+// Create returns a builder for creating a Qualification entity.
+func (c *QualificationClient) Create() *QualificationCreate {
+	mutation := newQualificationMutation(c.config, OpCreate)
+	return &QualificationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Qualification entities.
+func (c *QualificationClient) CreateBulk(builders ...*QualificationCreate) *QualificationCreateBulk {
+	return &QualificationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Qualification.
+func (c *QualificationClient) Update() *QualificationUpdate {
+	mutation := newQualificationMutation(c.config, OpUpdate)
+	return &QualificationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *QualificationClient) UpdateOne(q *Qualification) *QualificationUpdateOne {
+	mutation := newQualificationMutation(c.config, OpUpdateOne, withQualification(q))
+	return &QualificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *QualificationClient) UpdateOneID(id int) *QualificationUpdateOne {
+	mutation := newQualificationMutation(c.config, OpUpdateOne, withQualificationID(id))
+	return &QualificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Qualification.
+func (c *QualificationClient) Delete() *QualificationDelete {
+	mutation := newQualificationMutation(c.config, OpDelete)
+	return &QualificationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *QualificationClient) DeleteOne(q *Qualification) *QualificationDeleteOne {
+	return c.DeleteOneID(q.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *QualificationClient) DeleteOneID(id int) *QualificationDeleteOne {
+	builder := c.Delete().Where(qualification.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &QualificationDeleteOne{builder}
+}
+
+// Query returns a query builder for Qualification.
+func (c *QualificationClient) Query() *QualificationQuery {
+	return &QualificationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeQualification},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Qualification entity by its id.
+func (c *QualificationClient) Get(ctx context.Context, id int) (*Qualification, error) {
+	return c.Query().Where(qualification.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *QualificationClient) GetX(ctx context.Context, id int) *Qualification {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTasks queries the tasks edge of a Qualification.
+func (c *QualificationClient) QueryTasks(q *Qualification) *LabellingTaskQuery {
+	query := (&LabellingTaskClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := q.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(qualification.Table, qualification.FieldID, id),
+			sqlgraph.To(labellingtask.Table, labellingtask.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, qualification.TasksTable, qualification.TasksPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(q.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryExperts queries the experts edge of a Qualification.
+func (c *QualificationClient) QueryExperts(q *Qualification) *ExpertQuery {
+	query := (&ExpertClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := q.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(qualification.Table, qualification.FieldID, id),
+			sqlgraph.To(expert.Table, expert.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, qualification.ExpertsTable, qualification.ExpertsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(q.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *QualificationClient) Hooks() []Hook {
+	return c.hooks.Qualification
+}
+
+// Interceptors returns the client interceptors.
+func (c *QualificationClient) Interceptors() []Interceptor {
+	return c.inters.Qualification
+}
+
+func (c *QualificationClient) mutate(ctx context.Context, m *QualificationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&QualificationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&QualificationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&QualificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&QualificationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Qualification mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Expert, LabellingTask, LabellingTaskResponse []ent.Hook
+		Expert, LabellingTask, LabellingTaskResponse, Qualification []ent.Hook
 	}
 	inters struct {
-		Expert, LabellingTask, LabellingTaskResponse []ent.Interceptor
+		Expert, LabellingTask, LabellingTaskResponse, Qualification []ent.Interceptor
 	}
 )

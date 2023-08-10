@@ -14,3 +14,6 @@ type LabellingTask func(*sql.Selector)
 
 // LabellingTaskResponse is the predicate function for labellingtaskresponse builders.
 type LabellingTaskResponse func(*sql.Selector)
+
+// Qualification is the predicate function for qualification builders.
+type Qualification func(*sql.Selector)

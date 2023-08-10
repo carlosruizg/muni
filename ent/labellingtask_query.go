@@ -14,19 +14,22 @@ import (
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
 	"github.com/carlosruizg/muni/ent/predicate"
+	"github.com/carlosruizg/muni/ent/qualification"
 )
 
 // LabellingTaskQuery is the builder for querying LabellingTask entities.
 type LabellingTaskQuery struct {
 	config
-	ctx                *QueryContext
-	order              []labellingtask.OrderOption
-	inters             []Interceptor
-	predicates         []predicate.LabellingTask
-	withResponses      *LabellingTaskResponseQuery
-	modifiers          []func(*sql.Selector)
-	loadTotal          []func(context.Context, []*LabellingTask) error
-	withNamedResponses map[string]*LabellingTaskResponseQuery
+	ctx                         *QueryContext
+	order                       []labellingtask.OrderOption
+	inters                      []Interceptor
+	predicates                  []predicate.LabellingTask
+	withResponses               *LabellingTaskResponseQuery
+	withExpertRequirements      *QualificationQuery
+	modifiers                   []func(*sql.Selector)
+	loadTotal                   []func(context.Context, []*LabellingTask) error
+	withNamedResponses          map[string]*LabellingTaskResponseQuery
+	withNamedExpertRequirements map[string]*QualificationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -78,6 +81,28 @@ func (ltq *LabellingTaskQuery) QueryResponses() *LabellingTaskResponseQuery {
 			sqlgraph.From(labellingtask.Table, labellingtask.FieldID, selector),
 			sqlgraph.To(labellingtaskresponse.Table, labellingtaskresponse.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, labellingtask.ResponsesTable, labellingtask.ResponsesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ltq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryExpertRequirements chains the current query on the "expert_requirements" edge.
+func (ltq *LabellingTaskQuery) QueryExpertRequirements() *QualificationQuery {
+	query := (&QualificationClient{config: ltq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ltq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := ltq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(labellingtask.Table, labellingtask.FieldID, selector),
+			sqlgraph.To(qualification.Table, qualification.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, labellingtask.ExpertRequirementsTable, labellingtask.ExpertRequirementsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(ltq.driver.Dialect(), step)
 		return fromU, nil
@@ -272,12 +297,13 @@ func (ltq *LabellingTaskQuery) Clone() *LabellingTaskQuery {
 		return nil
 	}
 	return &LabellingTaskQuery{
-		config:        ltq.config,
-		ctx:           ltq.ctx.Clone(),
-		order:         append([]labellingtask.OrderOption{}, ltq.order...),
-		inters:        append([]Interceptor{}, ltq.inters...),
-		predicates:    append([]predicate.LabellingTask{}, ltq.predicates...),
-		withResponses: ltq.withResponses.Clone(),
+		config:                 ltq.config,
+		ctx:                    ltq.ctx.Clone(),
+		order:                  append([]labellingtask.OrderOption{}, ltq.order...),
+		inters:                 append([]Interceptor{}, ltq.inters...),
+		predicates:             append([]predicate.LabellingTask{}, ltq.predicates...),
+		withResponses:          ltq.withResponses.Clone(),
+		withExpertRequirements: ltq.withExpertRequirements.Clone(),
 		// clone intermediate query.
 		sql:  ltq.sql.Clone(),
 		path: ltq.path,
@@ -292,6 +318,17 @@ func (ltq *LabellingTaskQuery) WithResponses(opts ...func(*LabellingTaskResponse
 		opt(query)
 	}
 	ltq.withResponses = query
+	return ltq
+}
+
+// WithExpertRequirements tells the query-builder to eager-load the nodes that are connected to
+// the "expert_requirements" edge. The optional arguments are used to configure the query builder of the edge.
+func (ltq *LabellingTaskQuery) WithExpertRequirements(opts ...func(*QualificationQuery)) *LabellingTaskQuery {
+	query := (&QualificationClient{config: ltq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	ltq.withExpertRequirements = query
 	return ltq
 }
 
@@ -373,8 +410,9 @@ func (ltq *LabellingTaskQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	var (
 		nodes       = []*LabellingTask{}
 		_spec       = ltq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			ltq.withResponses != nil,
+			ltq.withExpertRequirements != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -405,10 +443,26 @@ func (ltq *LabellingTaskQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 			return nil, err
 		}
 	}
+	if query := ltq.withExpertRequirements; query != nil {
+		if err := ltq.loadExpertRequirements(ctx, query, nodes,
+			func(n *LabellingTask) { n.Edges.ExpertRequirements = []*Qualification{} },
+			func(n *LabellingTask, e *Qualification) {
+				n.Edges.ExpertRequirements = append(n.Edges.ExpertRequirements, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	for name, query := range ltq.withNamedResponses {
 		if err := ltq.loadResponses(ctx, query, nodes,
 			func(n *LabellingTask) { n.appendNamedResponses(name) },
 			func(n *LabellingTask, e *LabellingTaskResponse) { n.appendNamedResponses(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range ltq.withNamedExpertRequirements {
+		if err := ltq.loadExpertRequirements(ctx, query, nodes,
+			func(n *LabellingTask) { n.appendNamedExpertRequirements(name) },
+			func(n *LabellingTask, e *Qualification) { n.appendNamedExpertRequirements(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -448,6 +502,67 @@ func (ltq *LabellingTaskQuery) loadResponses(ctx context.Context, query *Labelli
 			return fmt.Errorf(`unexpected referenced foreign-key "labelling_task_responses" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (ltq *LabellingTaskQuery) loadExpertRequirements(ctx context.Context, query *QualificationQuery, nodes []*LabellingTask, init func(*LabellingTask), assign func(*LabellingTask, *Qualification)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*LabellingTask)
+	nids := make(map[int]map[*LabellingTask]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(labellingtask.ExpertRequirementsTable)
+		s.Join(joinT).On(s.C(qualification.FieldID), joinT.C(labellingtask.ExpertRequirementsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(labellingtask.ExpertRequirementsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(labellingtask.ExpertRequirementsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*LabellingTask]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Qualification](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "expert_requirements" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }
@@ -547,6 +662,20 @@ func (ltq *LabellingTaskQuery) WithNamedResponses(name string, opts ...func(*Lab
 		ltq.withNamedResponses = make(map[string]*LabellingTaskResponseQuery)
 	}
 	ltq.withNamedResponses[name] = query
+	return ltq
+}
+
+// WithNamedExpertRequirements tells the query-builder to eager-load the nodes that are connected to the "expert_requirements"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (ltq *LabellingTaskQuery) WithNamedExpertRequirements(name string, opts ...func(*QualificationQuery)) *LabellingTaskQuery {
+	query := (&QualificationClient{config: ltq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if ltq.withNamedExpertRequirements == nil {
+		ltq.withNamedExpertRequirements = make(map[string]*QualificationQuery)
+	}
+	ltq.withNamedExpertRequirements[name] = query
 	return ltq
 }
 

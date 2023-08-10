@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
 )
@@ -43,6 +44,25 @@ func (ltrc *LabellingTaskResponseCreate) SetNillableTaskID(id *int) *LabellingTa
 // SetTask sets the "task" edge to the LabellingTask entity.
 func (ltrc *LabellingTaskResponseCreate) SetTask(l *LabellingTask) *LabellingTaskResponseCreate {
 	return ltrc.SetTaskID(l.ID)
+}
+
+// SetExpertID sets the "expert" edge to the Expert entity by ID.
+func (ltrc *LabellingTaskResponseCreate) SetExpertID(id int) *LabellingTaskResponseCreate {
+	ltrc.mutation.SetExpertID(id)
+	return ltrc
+}
+
+// SetNillableExpertID sets the "expert" edge to the Expert entity by ID if the given value is not nil.
+func (ltrc *LabellingTaskResponseCreate) SetNillableExpertID(id *int) *LabellingTaskResponseCreate {
+	if id != nil {
+		ltrc = ltrc.SetExpertID(*id)
+	}
+	return ltrc
+}
+
+// SetExpert sets the "expert" edge to the Expert entity.
+func (ltrc *LabellingTaskResponseCreate) SetExpert(e *Expert) *LabellingTaskResponseCreate {
+	return ltrc.SetExpertID(e.ID)
 }
 
 // Mutation returns the LabellingTaskResponseMutation object of the builder.
@@ -127,6 +147,23 @@ func (ltrc *LabellingTaskResponseCreate) createSpec() (*LabellingTaskResponse, *
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.labelling_task_responses = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ltrc.mutation.ExpertIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   labellingtaskresponse.ExpertTable,
+			Columns: []string{labellingtaskresponse.ExpertColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(expert.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.expert_task_responses = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

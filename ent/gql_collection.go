@@ -10,6 +10,7 @@ import (
 	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
+	"github.com/carlosruizg/muni/ent/qualification"
 )
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
@@ -33,6 +34,30 @@ func (e *ExpertQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+		case "taskResponses":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&LabellingTaskResponseClient{config: e.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, labellingtaskresponseImplementors)...); err != nil {
+				return err
+			}
+			e.WithNamedTaskResponses(alias, func(wq *LabellingTaskResponseQuery) {
+				*wq = *query
+			})
+		case "qualifications":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&QualificationClient{config: e.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, qualificationImplementors)...); err != nil {
+				return err
+			}
+			e.WithNamedQualifications(alias, func(wq *QualificationQuery) {
+				*wq = *query
+			})
 		case "name":
 			if _, ok := fieldSeen[expert.FieldName]; !ok {
 				selectedFields = append(selectedFields, expert.FieldName)
@@ -107,6 +132,18 @@ func (lt *LabellingTaskQuery) collectField(ctx context.Context, opCtx *graphql.O
 				return err
 			}
 			lt.WithNamedResponses(alias, func(wq *LabellingTaskResponseQuery) {
+				*wq = *query
+			})
+		case "expertRequirements":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&QualificationClient{config: lt.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, qualificationImplementors)...); err != nil {
+				return err
+			}
+			lt.WithNamedExpertRequirements(alias, func(wq *QualificationQuery) {
 				*wq = *query
 			})
 		case "title":
@@ -188,6 +225,16 @@ func (ltr *LabellingTaskResponseQuery) collectField(ctx context.Context, opCtx *
 				return err
 			}
 			ltr.withTask = query
+		case "expert":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ExpertClient{config: ltr.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, expertImplementors)...); err != nil {
+				return err
+			}
+			ltr.withExpert = query
 		case "response":
 			if _, ok := fieldSeen[labellingtaskresponse.FieldResponse]; !ok {
 				selectedFields = append(selectedFields, labellingtaskresponse.FieldResponse)
@@ -213,6 +260,94 @@ type labellingtaskresponsePaginateArgs struct {
 
 func newLabellingTaskResponsePaginateArgs(rv map[string]any) *labellingtaskresponsePaginateArgs {
 	args := &labellingtaskresponsePaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (q *QualificationQuery) CollectFields(ctx context.Context, satisfies ...string) (*QualificationQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return q, nil
+	}
+	if err := q.collectField(ctx, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return q, nil
+}
+
+func (q *QualificationQuery) collectField(ctx context.Context, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(qualification.Columns))
+		selectedFields = []string{qualification.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "tasks":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&LabellingTaskClient{config: q.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, labellingtaskImplementors)...); err != nil {
+				return err
+			}
+			q.WithNamedTasks(alias, func(wq *LabellingTaskQuery) {
+				*wq = *query
+			})
+		case "experts":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ExpertClient{config: q.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, expertImplementors)...); err != nil {
+				return err
+			}
+			q.WithNamedExperts(alias, func(wq *ExpertQuery) {
+				*wq = *query
+			})
+		case "value":
+			if _, ok := fieldSeen[qualification.FieldValue]; !ok {
+				selectedFields = append(selectedFields, qualification.FieldValue)
+				fieldSeen[qualification.FieldValue] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		q.Select(selectedFields...)
+	}
+	return nil
+}
+
+type qualificationPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []QualificationPaginateOption
+}
+
+func newQualificationPaginateArgs(rv map[string]any) *qualificationPaginateArgs {
+	args := &qualificationPaginateArgs{}
 	if rv == nil {
 		return args
 	}

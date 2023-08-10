@@ -16,6 +16,7 @@ import (
 	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
+	"github.com/carlosruizg/muni/ent/qualification"
 	"github.com/hashicorp/go-multierror"
 	"golang.org/x/sync/semaphore"
 )
@@ -39,6 +40,11 @@ var labellingtaskresponseImplementors = []string{"LabellingTaskResponse", "Node"
 
 // IsNode implements the Node interface check for GQLGen.
 func (*LabellingTaskResponse) IsNode() {}
+
+var qualificationImplementors = []string{"Qualification", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*Qualification) IsNode() {}
 
 var errNodeInvalidID = &NotFoundError{"node"}
 
@@ -126,6 +132,18 @@ func (c *Client) noder(ctx context.Context, table string, id int) (Noder, error)
 		query := c.LabellingTaskResponse.Query().
 			Where(labellingtaskresponse.ID(id))
 		query, err := query.CollectFields(ctx, labellingtaskresponseImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		n, err := query.Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case qualification.Table:
+		query := c.Qualification.Query().
+			Where(qualification.ID(id))
+		query, err := query.CollectFields(ctx, qualificationImplementors...)
 		if err != nil {
 			return nil, err
 		}
@@ -243,6 +261,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []int) ([]Noder, 
 		query := c.LabellingTaskResponse.Query().
 			Where(labellingtaskresponse.IDIn(ids...))
 		query, err := query.CollectFields(ctx, labellingtaskresponseImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case qualification.Table:
+		query := c.Qualification.Query().
+			Where(qualification.IDIn(ids...))
+		query, err := query.CollectFields(ctx, qualificationImplementors...)
 		if err != nil {
 			return nil, err
 		}

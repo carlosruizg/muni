@@ -18,6 +18,8 @@ const (
 	FieldDescription = "description"
 	// EdgeResponses holds the string denoting the responses edge name in mutations.
 	EdgeResponses = "responses"
+	// EdgeExpertRequirements holds the string denoting the expert_requirements edge name in mutations.
+	EdgeExpertRequirements = "expert_requirements"
 	// Table holds the table name of the labellingtask in the database.
 	Table = "labelling_tasks"
 	// ResponsesTable is the table that holds the responses relation/edge.
@@ -27,6 +29,11 @@ const (
 	ResponsesInverseTable = "labelling_task_responses"
 	// ResponsesColumn is the table column denoting the responses relation/edge.
 	ResponsesColumn = "labelling_task_responses"
+	// ExpertRequirementsTable is the table that holds the expert_requirements relation/edge. The primary key declared below.
+	ExpertRequirementsTable = "labelling_task_expert_requirements"
+	// ExpertRequirementsInverseTable is the table name for the Qualification entity.
+	// It exists in this package in order to avoid circular dependency with the "qualification" package.
+	ExpertRequirementsInverseTable = "qualifications"
 )
 
 // Columns holds all SQL columns for labellingtask fields.
@@ -35,6 +42,12 @@ var Columns = []string{
 	FieldTitle,
 	FieldDescription,
 }
+
+var (
+	// ExpertRequirementsPrimaryKey and ExpertRequirementsColumn2 are the table columns denoting the
+	// primary key for the expert_requirements relation (M2M).
+	ExpertRequirementsPrimaryKey = []string{"labelling_task_id", "qualification_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -82,10 +95,31 @@ func ByResponses(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newResponsesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByExpertRequirementsCount orders the results by expert_requirements count.
+func ByExpertRequirementsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newExpertRequirementsStep(), opts...)
+	}
+}
+
+// ByExpertRequirements orders the results by expert_requirements terms.
+func ByExpertRequirements(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newExpertRequirementsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newResponsesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ResponsesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ResponsesTable, ResponsesColumn),
+	)
+}
+func newExpertRequirementsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ExpertRequirementsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, ExpertRequirementsTable, ExpertRequirementsPrimaryKey...),
 	)
 }

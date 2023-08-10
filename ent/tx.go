@@ -18,6 +18,8 @@ type Tx struct {
 	LabellingTask *LabellingTaskClient
 	// LabellingTaskResponse is the client for interacting with the LabellingTaskResponse builders.
 	LabellingTaskResponse *LabellingTaskResponseClient
+	// Qualification is the client for interacting with the Qualification builders.
+	Qualification *QualificationClient
 
 	// lazily loaded.
 	client     *Client
@@ -152,6 +154,7 @@ func (tx *Tx) init() {
 	tx.Expert = NewExpertClient(tx.config)
 	tx.LabellingTask = NewLabellingTaskClient(tx.config)
 	tx.LabellingTaskResponse = NewLabellingTaskResponseClient(tx.config)
+	tx.Qualification = NewQualificationClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

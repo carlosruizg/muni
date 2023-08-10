@@ -26,6 +26,7 @@ func (LabellingTaskResponse) Edges() []ent.Edge {
 		edge.From("task", LabellingTask.Type).
 			Ref("responses").
 			Unique(),
+		edge.From("expert", Expert.Type).Ref("task_responses").Unique(),
 	}
 }
 

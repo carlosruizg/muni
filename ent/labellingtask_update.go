@@ -13,6 +13,7 @@ import (
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
 	"github.com/carlosruizg/muni/ent/predicate"
+	"github.com/carlosruizg/muni/ent/qualification"
 )
 
 // LabellingTaskUpdate is the builder for updating LabellingTask entities.
@@ -69,6 +70,21 @@ func (ltu *LabellingTaskUpdate) AddResponses(l ...*LabellingTaskResponse) *Label
 	return ltu.AddResponseIDs(ids...)
 }
 
+// AddExpertRequirementIDs adds the "expert_requirements" edge to the Qualification entity by IDs.
+func (ltu *LabellingTaskUpdate) AddExpertRequirementIDs(ids ...int) *LabellingTaskUpdate {
+	ltu.mutation.AddExpertRequirementIDs(ids...)
+	return ltu
+}
+
+// AddExpertRequirements adds the "expert_requirements" edges to the Qualification entity.
+func (ltu *LabellingTaskUpdate) AddExpertRequirements(q ...*Qualification) *LabellingTaskUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return ltu.AddExpertRequirementIDs(ids...)
+}
+
 // Mutation returns the LabellingTaskMutation object of the builder.
 func (ltu *LabellingTaskUpdate) Mutation() *LabellingTaskMutation {
 	return ltu.mutation
@@ -93,6 +109,27 @@ func (ltu *LabellingTaskUpdate) RemoveResponses(l ...*LabellingTaskResponse) *La
 		ids[i] = l[i].ID
 	}
 	return ltu.RemoveResponseIDs(ids...)
+}
+
+// ClearExpertRequirements clears all "expert_requirements" edges to the Qualification entity.
+func (ltu *LabellingTaskUpdate) ClearExpertRequirements() *LabellingTaskUpdate {
+	ltu.mutation.ClearExpertRequirements()
+	return ltu
+}
+
+// RemoveExpertRequirementIDs removes the "expert_requirements" edge to Qualification entities by IDs.
+func (ltu *LabellingTaskUpdate) RemoveExpertRequirementIDs(ids ...int) *LabellingTaskUpdate {
+	ltu.mutation.RemoveExpertRequirementIDs(ids...)
+	return ltu
+}
+
+// RemoveExpertRequirements removes "expert_requirements" edges to Qualification entities.
+func (ltu *LabellingTaskUpdate) RemoveExpertRequirements(q ...*Qualification) *LabellingTaskUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return ltu.RemoveExpertRequirementIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -198,6 +235,51 @@ func (ltu *LabellingTaskUpdate) sqlSave(ctx context.Context) (n int, err error) 
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ltu.mutation.ExpertRequirementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   labellingtask.ExpertRequirementsTable,
+			Columns: labellingtask.ExpertRequirementsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qualification.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ltu.mutation.RemovedExpertRequirementsIDs(); len(nodes) > 0 && !ltu.mutation.ExpertRequirementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   labellingtask.ExpertRequirementsTable,
+			Columns: labellingtask.ExpertRequirementsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qualification.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ltu.mutation.ExpertRequirementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   labellingtask.ExpertRequirementsTable,
+			Columns: labellingtask.ExpertRequirementsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qualification.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ltu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{labellingtask.Label}
@@ -259,6 +341,21 @@ func (ltuo *LabellingTaskUpdateOne) AddResponses(l ...*LabellingTaskResponse) *L
 	return ltuo.AddResponseIDs(ids...)
 }
 
+// AddExpertRequirementIDs adds the "expert_requirements" edge to the Qualification entity by IDs.
+func (ltuo *LabellingTaskUpdateOne) AddExpertRequirementIDs(ids ...int) *LabellingTaskUpdateOne {
+	ltuo.mutation.AddExpertRequirementIDs(ids...)
+	return ltuo
+}
+
+// AddExpertRequirements adds the "expert_requirements" edges to the Qualification entity.
+func (ltuo *LabellingTaskUpdateOne) AddExpertRequirements(q ...*Qualification) *LabellingTaskUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return ltuo.AddExpertRequirementIDs(ids...)
+}
+
 // Mutation returns the LabellingTaskMutation object of the builder.
 func (ltuo *LabellingTaskUpdateOne) Mutation() *LabellingTaskMutation {
 	return ltuo.mutation
@@ -283,6 +380,27 @@ func (ltuo *LabellingTaskUpdateOne) RemoveResponses(l ...*LabellingTaskResponse)
 		ids[i] = l[i].ID
 	}
 	return ltuo.RemoveResponseIDs(ids...)
+}
+
+// ClearExpertRequirements clears all "expert_requirements" edges to the Qualification entity.
+func (ltuo *LabellingTaskUpdateOne) ClearExpertRequirements() *LabellingTaskUpdateOne {
+	ltuo.mutation.ClearExpertRequirements()
+	return ltuo
+}
+
+// RemoveExpertRequirementIDs removes the "expert_requirements" edge to Qualification entities by IDs.
+func (ltuo *LabellingTaskUpdateOne) RemoveExpertRequirementIDs(ids ...int) *LabellingTaskUpdateOne {
+	ltuo.mutation.RemoveExpertRequirementIDs(ids...)
+	return ltuo
+}
+
+// RemoveExpertRequirements removes "expert_requirements" edges to Qualification entities.
+func (ltuo *LabellingTaskUpdateOne) RemoveExpertRequirements(q ...*Qualification) *LabellingTaskUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return ltuo.RemoveExpertRequirementIDs(ids...)
 }
 
 // Where appends a list predicates to the LabellingTaskUpdate builder.
@@ -411,6 +529,51 @@ func (ltuo *LabellingTaskUpdateOne) sqlSave(ctx context.Context) (_node *Labelli
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(labellingtaskresponse.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ltuo.mutation.ExpertRequirementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   labellingtask.ExpertRequirementsTable,
+			Columns: labellingtask.ExpertRequirementsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qualification.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ltuo.mutation.RemovedExpertRequirementsIDs(); len(nodes) > 0 && !ltuo.mutation.ExpertRequirementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   labellingtask.ExpertRequirementsTable,
+			Columns: labellingtask.ExpertRequirementsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qualification.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ltuo.mutation.ExpertRequirementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   labellingtask.ExpertRequirementsTable,
+			Columns: labellingtask.ExpertRequirementsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qualification.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

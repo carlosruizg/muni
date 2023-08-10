@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -23,7 +24,6 @@ func main() {
 		fmt.Printf("ERROR: %v", err)
 	}()
 
-	// client, err := ent.Open(dialect.SQLite, "file:ent?mode=memory&cache=shared&_fk=1")
 	if err != nil {
 		log.Fatal("opening ent client", err)
 	}
@@ -34,6 +34,9 @@ func main() {
 		log.Fatal("opening ent client", err)
 	}
 
+	if len(os.Args) > 1 && os.Args[1] == "test_data" {
+		createTestData(dbClient)
+	}
 	// Configure the server and start listening on :8081.
 	srv := handler.NewDefaultServer(muni.NewSchema(dbClient.EntClient))
 	http.Handle("/",
@@ -44,4 +47,8 @@ func main() {
 	if err := http.ListenAndServe(":8081", nil); err != nil {
 		log.Fatal("http server terminated", err)
 	}
+}
+
+func createTestData(dbClient *muni.DB) {
+	// dbClient.EntClient.Qualification.Create().set
 }

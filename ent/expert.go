@@ -17,8 +17,45 @@ type Expert struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Name holds the value of the "name" field.
-	Name         string `json:"name,omitempty"`
+	Name string `json:"name,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ExpertQuery when eager-loading is set.
+	Edges        ExpertEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// ExpertEdges holds the relations/edges for other nodes in the graph.
+type ExpertEdges struct {
+	// TaskResponses holds the value of the task_responses edge.
+	TaskResponses []*LabellingTaskResponse `json:"task_responses,omitempty"`
+	// Qualifications holds the value of the qualifications edge.
+	Qualifications []*Qualification `json:"qualifications,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+	// totalCount holds the count of the edges above.
+	totalCount [2]map[string]int
+
+	namedTaskResponses  map[string][]*LabellingTaskResponse
+	namedQualifications map[string][]*Qualification
+}
+
+// TaskResponsesOrErr returns the TaskResponses value or an error if the edge
+// was not loaded in eager-loading.
+func (e ExpertEdges) TaskResponsesOrErr() ([]*LabellingTaskResponse, error) {
+	if e.loadedTypes[0] {
+		return e.TaskResponses, nil
+	}
+	return nil, &NotLoadedError{edge: "task_responses"}
+}
+
+// QualificationsOrErr returns the Qualifications value or an error if the edge
+// was not loaded in eager-loading.
+func (e ExpertEdges) QualificationsOrErr() ([]*Qualification, error) {
+	if e.loadedTypes[1] {
+		return e.Qualifications, nil
+	}
+	return nil, &NotLoadedError{edge: "qualifications"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -70,6 +107,16 @@ func (e *Expert) Value(name string) (ent.Value, error) {
 	return e.selectValues.Get(name)
 }
 
+// QueryTaskResponses queries the "task_responses" edge of the Expert entity.
+func (e *Expert) QueryTaskResponses() *LabellingTaskResponseQuery {
+	return NewExpertClient(e.config).QueryTaskResponses(e)
+}
+
+// QueryQualifications queries the "qualifications" edge of the Expert entity.
+func (e *Expert) QueryQualifications() *QualificationQuery {
+	return NewExpertClient(e.config).QueryQualifications(e)
+}
+
 // Update returns a builder for updating this Expert.
 // Note that you need to call Expert.Unwrap() before calling this method if this Expert
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -97,6 +144,54 @@ func (e *Expert) String() string {
 	builder.WriteString(e.Name)
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedTaskResponses returns the TaskResponses named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (e *Expert) NamedTaskResponses(name string) ([]*LabellingTaskResponse, error) {
+	if e.Edges.namedTaskResponses == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := e.Edges.namedTaskResponses[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (e *Expert) appendNamedTaskResponses(name string, edges ...*LabellingTaskResponse) {
+	if e.Edges.namedTaskResponses == nil {
+		e.Edges.namedTaskResponses = make(map[string][]*LabellingTaskResponse)
+	}
+	if len(edges) == 0 {
+		e.Edges.namedTaskResponses[name] = []*LabellingTaskResponse{}
+	} else {
+		e.Edges.namedTaskResponses[name] = append(e.Edges.namedTaskResponses[name], edges...)
+	}
+}
+
+// NamedQualifications returns the Qualifications named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (e *Expert) NamedQualifications(name string) ([]*Qualification, error) {
+	if e.Edges.namedQualifications == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := e.Edges.namedQualifications[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (e *Expert) appendNamedQualifications(name string, edges ...*Qualification) {
+	if e.Edges.namedQualifications == nil {
+		e.Edges.namedQualifications = make(map[string][]*Qualification)
+	}
+	if len(edges) == 0 {
+		e.Edges.namedQualifications[name] = []*Qualification{}
+	} else {
+		e.Edges.namedQualifications[name] = append(e.Edges.namedQualifications[name], edges...)
+	}
 }
 
 // Experts is a parsable slice of Expert.

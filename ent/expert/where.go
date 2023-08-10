@@ -4,6 +4,7 @@ package expert
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/carlosruizg/muni/ent/predicate"
 )
 
@@ -120,6 +121,52 @@ func NameEqualFold(v string) predicate.Expert {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.Expert {
 	return predicate.Expert(sql.FieldContainsFold(FieldName, v))
+}
+
+// HasTaskResponses applies the HasEdge predicate on the "task_responses" edge.
+func HasTaskResponses() predicate.Expert {
+	return predicate.Expert(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, TaskResponsesTable, TaskResponsesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTaskResponsesWith applies the HasEdge predicate on the "task_responses" edge with a given conditions (other predicates).
+func HasTaskResponsesWith(preds ...predicate.LabellingTaskResponse) predicate.Expert {
+	return predicate.Expert(func(s *sql.Selector) {
+		step := newTaskResponsesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasQualifications applies the HasEdge predicate on the "qualifications" edge.
+func HasQualifications() predicate.Expert {
+	return predicate.Expert(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, QualificationsTable, QualificationsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasQualificationsWith applies the HasEdge predicate on the "qualifications" edge with a given conditions (other predicates).
+func HasQualificationsWith(preds ...predicate.Qualification) predicate.Expert {
+	return predicate.Expert(func(s *sql.Selector) {
+		step := newQualificationsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

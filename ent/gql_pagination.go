@@ -14,6 +14,7 @@ import (
 	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
+	"github.com/carlosruizg/muni/ent/qualification"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
@@ -838,5 +839,253 @@ func (ltr *LabellingTaskResponse) ToEdge(order *LabellingTaskResponseOrder) *Lab
 	return &LabellingTaskResponseEdge{
 		Node:   ltr,
 		Cursor: order.Field.toCursor(ltr),
+	}
+}
+
+// QualificationEdge is the edge representation of Qualification.
+type QualificationEdge struct {
+	Node   *Qualification `json:"node"`
+	Cursor Cursor         `json:"cursor"`
+}
+
+// QualificationConnection is the connection containing edges to Qualification.
+type QualificationConnection struct {
+	Edges      []*QualificationEdge `json:"edges"`
+	PageInfo   PageInfo             `json:"pageInfo"`
+	TotalCount int                  `json:"totalCount"`
+}
+
+func (c *QualificationConnection) build(nodes []*Qualification, pager *qualificationPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *Qualification
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *Qualification {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *Qualification {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*QualificationEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &QualificationEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// QualificationPaginateOption enables pagination customization.
+type QualificationPaginateOption func(*qualificationPager) error
+
+// WithQualificationOrder configures pagination ordering.
+func WithQualificationOrder(order *QualificationOrder) QualificationPaginateOption {
+	if order == nil {
+		order = DefaultQualificationOrder
+	}
+	o := *order
+	return func(pager *qualificationPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultQualificationOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithQualificationFilter configures pagination filter.
+func WithQualificationFilter(filter func(*QualificationQuery) (*QualificationQuery, error)) QualificationPaginateOption {
+	return func(pager *qualificationPager) error {
+		if filter == nil {
+			return errors.New("QualificationQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type qualificationPager struct {
+	reverse bool
+	order   *QualificationOrder
+	filter  func(*QualificationQuery) (*QualificationQuery, error)
+}
+
+func newQualificationPager(opts []QualificationPaginateOption, reverse bool) (*qualificationPager, error) {
+	pager := &qualificationPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultQualificationOrder
+	}
+	return pager, nil
+}
+
+func (p *qualificationPager) applyFilter(query *QualificationQuery) (*QualificationQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *qualificationPager) toCursor(q *Qualification) Cursor {
+	return p.order.Field.toCursor(q)
+}
+
+func (p *qualificationPager) applyCursors(query *QualificationQuery, after, before *Cursor) (*QualificationQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultQualificationOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *qualificationPager) applyOrder(query *QualificationQuery) *QualificationQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultQualificationOrder.Field {
+		query = query.Order(DefaultQualificationOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *qualificationPager) orderExpr(query *QualificationQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultQualificationOrder.Field {
+			b.Comma().Ident(DefaultQualificationOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to Qualification.
+func (q *QualificationQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...QualificationPaginateOption,
+) (*QualificationConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newQualificationPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if q, err = pager.applyFilter(q); err != nil {
+		return nil, err
+	}
+	conn := &QualificationConnection{Edges: []*QualificationEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := q.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if q, err = pager.applyCursors(q, after, before); err != nil {
+		return nil, err
+	}
+	if limit := paginateLimit(first, last); limit != 0 {
+		q.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := q.collectField(ctx, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	q = pager.applyOrder(q)
+	nodes, err := q.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// QualificationOrderField defines the ordering field of Qualification.
+type QualificationOrderField struct {
+	// Value extracts the ordering value from the given Qualification.
+	Value    func(*Qualification) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) qualification.OrderOption
+	toCursor func(*Qualification) Cursor
+}
+
+// QualificationOrder defines the ordering of Qualification.
+type QualificationOrder struct {
+	Direction OrderDirection           `json:"direction"`
+	Field     *QualificationOrderField `json:"field"`
+}
+
+// DefaultQualificationOrder is the default ordering of Qualification.
+var DefaultQualificationOrder = &QualificationOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &QualificationOrderField{
+		Value: func(q *Qualification) (ent.Value, error) {
+			return q.ID, nil
+		},
+		column: qualification.FieldID,
+		toTerm: qualification.ByID,
+		toCursor: func(q *Qualification) Cursor {
+			return Cursor{ID: q.ID}
+		},
+	},
+}
+
+// ToEdge converts Qualification into QualificationEdge.
+func (q *Qualification) ToEdge(order *QualificationOrder) *QualificationEdge {
+	if order == nil {
+		order = DefaultQualificationOrder
+	}
+	return &QualificationEdge{
+		Node:   q,
+		Cursor: order.Field.toCursor(q),
 	}
 }

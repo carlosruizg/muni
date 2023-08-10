@@ -11,7 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/carlosruizg/muni/ent/expert"
+	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
 	"github.com/carlosruizg/muni/ent/predicate"
+	"github.com/carlosruizg/muni/ent/qualification"
 )
 
 // ExpertUpdate is the builder for updating Expert entities.
@@ -33,9 +35,81 @@ func (eu *ExpertUpdate) SetName(s string) *ExpertUpdate {
 	return eu
 }
 
+// AddTaskResponseIDs adds the "task_responses" edge to the LabellingTaskResponse entity by IDs.
+func (eu *ExpertUpdate) AddTaskResponseIDs(ids ...int) *ExpertUpdate {
+	eu.mutation.AddTaskResponseIDs(ids...)
+	return eu
+}
+
+// AddTaskResponses adds the "task_responses" edges to the LabellingTaskResponse entity.
+func (eu *ExpertUpdate) AddTaskResponses(l ...*LabellingTaskResponse) *ExpertUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return eu.AddTaskResponseIDs(ids...)
+}
+
+// AddQualificationIDs adds the "qualifications" edge to the Qualification entity by IDs.
+func (eu *ExpertUpdate) AddQualificationIDs(ids ...int) *ExpertUpdate {
+	eu.mutation.AddQualificationIDs(ids...)
+	return eu
+}
+
+// AddQualifications adds the "qualifications" edges to the Qualification entity.
+func (eu *ExpertUpdate) AddQualifications(q ...*Qualification) *ExpertUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return eu.AddQualificationIDs(ids...)
+}
+
 // Mutation returns the ExpertMutation object of the builder.
 func (eu *ExpertUpdate) Mutation() *ExpertMutation {
 	return eu.mutation
+}
+
+// ClearTaskResponses clears all "task_responses" edges to the LabellingTaskResponse entity.
+func (eu *ExpertUpdate) ClearTaskResponses() *ExpertUpdate {
+	eu.mutation.ClearTaskResponses()
+	return eu
+}
+
+// RemoveTaskResponseIDs removes the "task_responses" edge to LabellingTaskResponse entities by IDs.
+func (eu *ExpertUpdate) RemoveTaskResponseIDs(ids ...int) *ExpertUpdate {
+	eu.mutation.RemoveTaskResponseIDs(ids...)
+	return eu
+}
+
+// RemoveTaskResponses removes "task_responses" edges to LabellingTaskResponse entities.
+func (eu *ExpertUpdate) RemoveTaskResponses(l ...*LabellingTaskResponse) *ExpertUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return eu.RemoveTaskResponseIDs(ids...)
+}
+
+// ClearQualifications clears all "qualifications" edges to the Qualification entity.
+func (eu *ExpertUpdate) ClearQualifications() *ExpertUpdate {
+	eu.mutation.ClearQualifications()
+	return eu
+}
+
+// RemoveQualificationIDs removes the "qualifications" edge to Qualification entities by IDs.
+func (eu *ExpertUpdate) RemoveQualificationIDs(ids ...int) *ExpertUpdate {
+	eu.mutation.RemoveQualificationIDs(ids...)
+	return eu
+}
+
+// RemoveQualifications removes "qualifications" edges to Qualification entities.
+func (eu *ExpertUpdate) RemoveQualifications(q ...*Qualification) *ExpertUpdate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return eu.RemoveQualificationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -90,6 +164,96 @@ func (eu *ExpertUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := eu.mutation.Name(); ok {
 		_spec.SetField(expert.FieldName, field.TypeString, value)
 	}
+	if eu.mutation.TaskResponsesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   expert.TaskResponsesTable,
+			Columns: []string{expert.TaskResponsesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(labellingtaskresponse.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.RemovedTaskResponsesIDs(); len(nodes) > 0 && !eu.mutation.TaskResponsesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   expert.TaskResponsesTable,
+			Columns: []string{expert.TaskResponsesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(labellingtaskresponse.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.TaskResponsesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   expert.TaskResponsesTable,
+			Columns: []string{expert.TaskResponsesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(labellingtaskresponse.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if eu.mutation.QualificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   expert.QualificationsTable,
+			Columns: expert.QualificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qualification.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.RemovedQualificationsIDs(); len(nodes) > 0 && !eu.mutation.QualificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   expert.QualificationsTable,
+			Columns: expert.QualificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qualification.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := eu.mutation.QualificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   expert.QualificationsTable,
+			Columns: expert.QualificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qualification.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, eu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{expert.Label}
@@ -116,9 +280,81 @@ func (euo *ExpertUpdateOne) SetName(s string) *ExpertUpdateOne {
 	return euo
 }
 
+// AddTaskResponseIDs adds the "task_responses" edge to the LabellingTaskResponse entity by IDs.
+func (euo *ExpertUpdateOne) AddTaskResponseIDs(ids ...int) *ExpertUpdateOne {
+	euo.mutation.AddTaskResponseIDs(ids...)
+	return euo
+}
+
+// AddTaskResponses adds the "task_responses" edges to the LabellingTaskResponse entity.
+func (euo *ExpertUpdateOne) AddTaskResponses(l ...*LabellingTaskResponse) *ExpertUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return euo.AddTaskResponseIDs(ids...)
+}
+
+// AddQualificationIDs adds the "qualifications" edge to the Qualification entity by IDs.
+func (euo *ExpertUpdateOne) AddQualificationIDs(ids ...int) *ExpertUpdateOne {
+	euo.mutation.AddQualificationIDs(ids...)
+	return euo
+}
+
+// AddQualifications adds the "qualifications" edges to the Qualification entity.
+func (euo *ExpertUpdateOne) AddQualifications(q ...*Qualification) *ExpertUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return euo.AddQualificationIDs(ids...)
+}
+
 // Mutation returns the ExpertMutation object of the builder.
 func (euo *ExpertUpdateOne) Mutation() *ExpertMutation {
 	return euo.mutation
+}
+
+// ClearTaskResponses clears all "task_responses" edges to the LabellingTaskResponse entity.
+func (euo *ExpertUpdateOne) ClearTaskResponses() *ExpertUpdateOne {
+	euo.mutation.ClearTaskResponses()
+	return euo
+}
+
+// RemoveTaskResponseIDs removes the "task_responses" edge to LabellingTaskResponse entities by IDs.
+func (euo *ExpertUpdateOne) RemoveTaskResponseIDs(ids ...int) *ExpertUpdateOne {
+	euo.mutation.RemoveTaskResponseIDs(ids...)
+	return euo
+}
+
+// RemoveTaskResponses removes "task_responses" edges to LabellingTaskResponse entities.
+func (euo *ExpertUpdateOne) RemoveTaskResponses(l ...*LabellingTaskResponse) *ExpertUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return euo.RemoveTaskResponseIDs(ids...)
+}
+
+// ClearQualifications clears all "qualifications" edges to the Qualification entity.
+func (euo *ExpertUpdateOne) ClearQualifications() *ExpertUpdateOne {
+	euo.mutation.ClearQualifications()
+	return euo
+}
+
+// RemoveQualificationIDs removes the "qualifications" edge to Qualification entities by IDs.
+func (euo *ExpertUpdateOne) RemoveQualificationIDs(ids ...int) *ExpertUpdateOne {
+	euo.mutation.RemoveQualificationIDs(ids...)
+	return euo
+}
+
+// RemoveQualifications removes "qualifications" edges to Qualification entities.
+func (euo *ExpertUpdateOne) RemoveQualifications(q ...*Qualification) *ExpertUpdateOne {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return euo.RemoveQualificationIDs(ids...)
 }
 
 // Where appends a list predicates to the ExpertUpdate builder.
@@ -202,6 +438,96 @@ func (euo *ExpertUpdateOne) sqlSave(ctx context.Context) (_node *Expert, err err
 	}
 	if value, ok := euo.mutation.Name(); ok {
 		_spec.SetField(expert.FieldName, field.TypeString, value)
+	}
+	if euo.mutation.TaskResponsesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   expert.TaskResponsesTable,
+			Columns: []string{expert.TaskResponsesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(labellingtaskresponse.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.RemovedTaskResponsesIDs(); len(nodes) > 0 && !euo.mutation.TaskResponsesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   expert.TaskResponsesTable,
+			Columns: []string{expert.TaskResponsesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(labellingtaskresponse.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.TaskResponsesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   expert.TaskResponsesTable,
+			Columns: []string{expert.TaskResponsesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(labellingtaskresponse.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if euo.mutation.QualificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   expert.QualificationsTable,
+			Columns: expert.QualificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qualification.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.RemovedQualificationsIDs(); len(nodes) > 0 && !euo.mutation.QualificationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   expert.QualificationsTable,
+			Columns: expert.QualificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qualification.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := euo.mutation.QualificationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   expert.QualificationsTable,
+			Columns: expert.QualificationsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qualification.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Expert{config: euo.config}
 	_spec.Assign = _node.assignValues

@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
 )
@@ -22,6 +23,7 @@ type LabellingTaskResponse struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LabellingTaskResponseQuery when eager-loading is set.
 	Edges                    LabellingTaskResponseEdges `json:"edges"`
+	expert_task_responses    *int
 	labelling_task_responses *int
 	selectValues             sql.SelectValues
 }
@@ -30,11 +32,13 @@ type LabellingTaskResponse struct {
 type LabellingTaskResponseEdges struct {
 	// Task holds the value of the task edge.
 	Task *LabellingTask `json:"task,omitempty"`
+	// Expert holds the value of the expert edge.
+	Expert *Expert `json:"expert,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
 }
 
 // TaskOrErr returns the Task value or an error if the edge
@@ -50,6 +54,19 @@ func (e LabellingTaskResponseEdges) TaskOrErr() (*LabellingTask, error) {
 	return nil, &NotLoadedError{edge: "task"}
 }
 
+// ExpertOrErr returns the Expert value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e LabellingTaskResponseEdges) ExpertOrErr() (*Expert, error) {
+	if e.loadedTypes[1] {
+		if e.Expert == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: expert.Label}
+		}
+		return e.Expert, nil
+	}
+	return nil, &NotLoadedError{edge: "expert"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*LabellingTaskResponse) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -59,7 +76,9 @@ func (*LabellingTaskResponse) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case labellingtaskresponse.FieldResponse:
 			values[i] = new(sql.NullString)
-		case labellingtaskresponse.ForeignKeys[0]: // labelling_task_responses
+		case labellingtaskresponse.ForeignKeys[0]: // expert_task_responses
+			values[i] = new(sql.NullInt64)
+		case labellingtaskresponse.ForeignKeys[1]: // labelling_task_responses
 			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -90,6 +109,13 @@ func (ltr *LabellingTaskResponse) assignValues(columns []string, values []any) e
 			}
 		case labellingtaskresponse.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field expert_task_responses", value)
+			} else if value.Valid {
+				ltr.expert_task_responses = new(int)
+				*ltr.expert_task_responses = int(value.Int64)
+			}
+		case labellingtaskresponse.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field labelling_task_responses", value)
 			} else if value.Valid {
 				ltr.labelling_task_responses = new(int)
@@ -111,6 +137,11 @@ func (ltr *LabellingTaskResponse) Value(name string) (ent.Value, error) {
 // QueryTask queries the "task" edge of the LabellingTaskResponse entity.
 func (ltr *LabellingTaskResponse) QueryTask() *LabellingTaskQuery {
 	return NewLabellingTaskResponseClient(ltr.config).QueryTask(ltr)
+}
+
+// QueryExpert queries the "expert" edge of the LabellingTaskResponse entity.
+func (ltr *LabellingTaskResponse) QueryExpert() *ExpertQuery {
+	return NewLabellingTaskResponseClient(ltr.config).QueryExpert(ltr)
 }
 
 // Update returns a builder for updating this LabellingTaskResponse.

@@ -14,6 +14,8 @@ import (
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
 	"github.com/carlosruizg/muni/ent/predicate"
+	"github.com/carlosruizg/muni/ent/qualification"
+	"github.com/carlosruizg/muni/ent/schema"
 )
 
 const (
@@ -28,19 +30,26 @@ const (
 	TypeExpert                = "Expert"
 	TypeLabellingTask         = "LabellingTask"
 	TypeLabellingTaskResponse = "LabellingTaskResponse"
+	TypeQualification         = "Qualification"
 )
 
 // ExpertMutation represents an operation that mutates the Expert nodes in the graph.
 type ExpertMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	name          *string
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Expert, error)
-	predicates    []predicate.Expert
+	op                    Op
+	typ                   string
+	id                    *int
+	name                  *string
+	clearedFields         map[string]struct{}
+	task_responses        map[int]struct{}
+	removedtask_responses map[int]struct{}
+	clearedtask_responses bool
+	qualifications        map[int]struct{}
+	removedqualifications map[int]struct{}
+	clearedqualifications bool
+	done                  bool
+	oldValue              func(context.Context) (*Expert, error)
+	predicates            []predicate.Expert
 }
 
 var _ ent.Mutation = (*ExpertMutation)(nil)
@@ -177,6 +186,114 @@ func (m *ExpertMutation) ResetName() {
 	m.name = nil
 }
 
+// AddTaskResponseIDs adds the "task_responses" edge to the LabellingTaskResponse entity by ids.
+func (m *ExpertMutation) AddTaskResponseIDs(ids ...int) {
+	if m.task_responses == nil {
+		m.task_responses = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.task_responses[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTaskResponses clears the "task_responses" edge to the LabellingTaskResponse entity.
+func (m *ExpertMutation) ClearTaskResponses() {
+	m.clearedtask_responses = true
+}
+
+// TaskResponsesCleared reports if the "task_responses" edge to the LabellingTaskResponse entity was cleared.
+func (m *ExpertMutation) TaskResponsesCleared() bool {
+	return m.clearedtask_responses
+}
+
+// RemoveTaskResponseIDs removes the "task_responses" edge to the LabellingTaskResponse entity by IDs.
+func (m *ExpertMutation) RemoveTaskResponseIDs(ids ...int) {
+	if m.removedtask_responses == nil {
+		m.removedtask_responses = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.task_responses, ids[i])
+		m.removedtask_responses[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTaskResponses returns the removed IDs of the "task_responses" edge to the LabellingTaskResponse entity.
+func (m *ExpertMutation) RemovedTaskResponsesIDs() (ids []int) {
+	for id := range m.removedtask_responses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TaskResponsesIDs returns the "task_responses" edge IDs in the mutation.
+func (m *ExpertMutation) TaskResponsesIDs() (ids []int) {
+	for id := range m.task_responses {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTaskResponses resets all changes to the "task_responses" edge.
+func (m *ExpertMutation) ResetTaskResponses() {
+	m.task_responses = nil
+	m.clearedtask_responses = false
+	m.removedtask_responses = nil
+}
+
+// AddQualificationIDs adds the "qualifications" edge to the Qualification entity by ids.
+func (m *ExpertMutation) AddQualificationIDs(ids ...int) {
+	if m.qualifications == nil {
+		m.qualifications = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.qualifications[ids[i]] = struct{}{}
+	}
+}
+
+// ClearQualifications clears the "qualifications" edge to the Qualification entity.
+func (m *ExpertMutation) ClearQualifications() {
+	m.clearedqualifications = true
+}
+
+// QualificationsCleared reports if the "qualifications" edge to the Qualification entity was cleared.
+func (m *ExpertMutation) QualificationsCleared() bool {
+	return m.clearedqualifications
+}
+
+// RemoveQualificationIDs removes the "qualifications" edge to the Qualification entity by IDs.
+func (m *ExpertMutation) RemoveQualificationIDs(ids ...int) {
+	if m.removedqualifications == nil {
+		m.removedqualifications = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.qualifications, ids[i])
+		m.removedqualifications[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedQualifications returns the removed IDs of the "qualifications" edge to the Qualification entity.
+func (m *ExpertMutation) RemovedQualificationsIDs() (ids []int) {
+	for id := range m.removedqualifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// QualificationsIDs returns the "qualifications" edge IDs in the mutation.
+func (m *ExpertMutation) QualificationsIDs() (ids []int) {
+	for id := range m.qualifications {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetQualifications resets all changes to the "qualifications" edge.
+func (m *ExpertMutation) ResetQualifications() {
+	m.qualifications = nil
+	m.clearedqualifications = false
+	m.removedqualifications = nil
+}
+
 // Where appends a list predicates to the ExpertMutation builder.
 func (m *ExpertMutation) Where(ps ...predicate.Expert) {
 	m.predicates = append(m.predicates, ps...)
@@ -310,67 +427,132 @@ func (m *ExpertMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ExpertMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.task_responses != nil {
+		edges = append(edges, expert.EdgeTaskResponses)
+	}
+	if m.qualifications != nil {
+		edges = append(edges, expert.EdgeQualifications)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *ExpertMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case expert.EdgeTaskResponses:
+		ids := make([]ent.Value, 0, len(m.task_responses))
+		for id := range m.task_responses {
+			ids = append(ids, id)
+		}
+		return ids
+	case expert.EdgeQualifications:
+		ids := make([]ent.Value, 0, len(m.qualifications))
+		for id := range m.qualifications {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ExpertMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.removedtask_responses != nil {
+		edges = append(edges, expert.EdgeTaskResponses)
+	}
+	if m.removedqualifications != nil {
+		edges = append(edges, expert.EdgeQualifications)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ExpertMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case expert.EdgeTaskResponses:
+		ids := make([]ent.Value, 0, len(m.removedtask_responses))
+		for id := range m.removedtask_responses {
+			ids = append(ids, id)
+		}
+		return ids
+	case expert.EdgeQualifications:
+		ids := make([]ent.Value, 0, len(m.removedqualifications))
+		for id := range m.removedqualifications {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ExpertMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 2)
+	if m.clearedtask_responses {
+		edges = append(edges, expert.EdgeTaskResponses)
+	}
+	if m.clearedqualifications {
+		edges = append(edges, expert.EdgeQualifications)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *ExpertMutation) EdgeCleared(name string) bool {
+	switch name {
+	case expert.EdgeTaskResponses:
+		return m.clearedtask_responses
+	case expert.EdgeQualifications:
+		return m.clearedqualifications
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *ExpertMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Expert unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *ExpertMutation) ResetEdge(name string) error {
+	switch name {
+	case expert.EdgeTaskResponses:
+		m.ResetTaskResponses()
+		return nil
+	case expert.EdgeQualifications:
+		m.ResetQualifications()
+		return nil
+	}
 	return fmt.Errorf("unknown Expert edge %s", name)
 }
 
 // LabellingTaskMutation represents an operation that mutates the LabellingTask nodes in the graph.
 type LabellingTaskMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *int
-	title            *string
-	description      *string
-	clearedFields    map[string]struct{}
-	responses        map[int]struct{}
-	removedresponses map[int]struct{}
-	clearedresponses bool
-	done             bool
-	oldValue         func(context.Context) (*LabellingTask, error)
-	predicates       []predicate.LabellingTask
+	op                         Op
+	typ                        string
+	id                         *int
+	title                      *string
+	description                *string
+	clearedFields              map[string]struct{}
+	responses                  map[int]struct{}
+	removedresponses           map[int]struct{}
+	clearedresponses           bool
+	expert_requirements        map[int]struct{}
+	removedexpert_requirements map[int]struct{}
+	clearedexpert_requirements bool
+	done                       bool
+	oldValue                   func(context.Context) (*LabellingTask, error)
+	predicates                 []predicate.LabellingTask
 }
 
 var _ ent.Mutation = (*LabellingTaskMutation)(nil)
@@ -610,6 +792,60 @@ func (m *LabellingTaskMutation) ResetResponses() {
 	m.removedresponses = nil
 }
 
+// AddExpertRequirementIDs adds the "expert_requirements" edge to the Qualification entity by ids.
+func (m *LabellingTaskMutation) AddExpertRequirementIDs(ids ...int) {
+	if m.expert_requirements == nil {
+		m.expert_requirements = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.expert_requirements[ids[i]] = struct{}{}
+	}
+}
+
+// ClearExpertRequirements clears the "expert_requirements" edge to the Qualification entity.
+func (m *LabellingTaskMutation) ClearExpertRequirements() {
+	m.clearedexpert_requirements = true
+}
+
+// ExpertRequirementsCleared reports if the "expert_requirements" edge to the Qualification entity was cleared.
+func (m *LabellingTaskMutation) ExpertRequirementsCleared() bool {
+	return m.clearedexpert_requirements
+}
+
+// RemoveExpertRequirementIDs removes the "expert_requirements" edge to the Qualification entity by IDs.
+func (m *LabellingTaskMutation) RemoveExpertRequirementIDs(ids ...int) {
+	if m.removedexpert_requirements == nil {
+		m.removedexpert_requirements = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.expert_requirements, ids[i])
+		m.removedexpert_requirements[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedExpertRequirements returns the removed IDs of the "expert_requirements" edge to the Qualification entity.
+func (m *LabellingTaskMutation) RemovedExpertRequirementsIDs() (ids []int) {
+	for id := range m.removedexpert_requirements {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ExpertRequirementsIDs returns the "expert_requirements" edge IDs in the mutation.
+func (m *LabellingTaskMutation) ExpertRequirementsIDs() (ids []int) {
+	for id := range m.expert_requirements {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetExpertRequirements resets all changes to the "expert_requirements" edge.
+func (m *LabellingTaskMutation) ResetExpertRequirements() {
+	m.expert_requirements = nil
+	m.clearedexpert_requirements = false
+	m.removedexpert_requirements = nil
+}
+
 // Where appends a list predicates to the LabellingTaskMutation builder.
 func (m *LabellingTaskMutation) Where(ps ...predicate.LabellingTask) {
 	m.predicates = append(m.predicates, ps...)
@@ -769,9 +1005,12 @@ func (m *LabellingTaskMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *LabellingTaskMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.responses != nil {
 		edges = append(edges, labellingtask.EdgeResponses)
+	}
+	if m.expert_requirements != nil {
+		edges = append(edges, labellingtask.EdgeExpertRequirements)
 	}
 	return edges
 }
@@ -786,15 +1025,24 @@ func (m *LabellingTaskMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case labellingtask.EdgeExpertRequirements:
+		ids := make([]ent.Value, 0, len(m.expert_requirements))
+		for id := range m.expert_requirements {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *LabellingTaskMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedresponses != nil {
 		edges = append(edges, labellingtask.EdgeResponses)
+	}
+	if m.removedexpert_requirements != nil {
+		edges = append(edges, labellingtask.EdgeExpertRequirements)
 	}
 	return edges
 }
@@ -809,15 +1057,24 @@ func (m *LabellingTaskMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case labellingtask.EdgeExpertRequirements:
+		ids := make([]ent.Value, 0, len(m.removedexpert_requirements))
+		for id := range m.removedexpert_requirements {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *LabellingTaskMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedresponses {
 		edges = append(edges, labellingtask.EdgeResponses)
+	}
+	if m.clearedexpert_requirements {
+		edges = append(edges, labellingtask.EdgeExpertRequirements)
 	}
 	return edges
 }
@@ -828,6 +1085,8 @@ func (m *LabellingTaskMutation) EdgeCleared(name string) bool {
 	switch name {
 	case labellingtask.EdgeResponses:
 		return m.clearedresponses
+	case labellingtask.EdgeExpertRequirements:
+		return m.clearedexpert_requirements
 	}
 	return false
 }
@@ -847,6 +1106,9 @@ func (m *LabellingTaskMutation) ResetEdge(name string) error {
 	case labellingtask.EdgeResponses:
 		m.ResetResponses()
 		return nil
+	case labellingtask.EdgeExpertRequirements:
+		m.ResetExpertRequirements()
+		return nil
 	}
 	return fmt.Errorf("unknown LabellingTask edge %s", name)
 }
@@ -861,6 +1123,8 @@ type LabellingTaskResponseMutation struct {
 	clearedFields map[string]struct{}
 	task          *int
 	clearedtask   bool
+	expert        *int
+	clearedexpert bool
 	done          bool
 	oldValue      func(context.Context) (*LabellingTaskResponse, error)
 	predicates    []predicate.LabellingTaskResponse
@@ -1039,6 +1303,45 @@ func (m *LabellingTaskResponseMutation) ResetTask() {
 	m.clearedtask = false
 }
 
+// SetExpertID sets the "expert" edge to the Expert entity by id.
+func (m *LabellingTaskResponseMutation) SetExpertID(id int) {
+	m.expert = &id
+}
+
+// ClearExpert clears the "expert" edge to the Expert entity.
+func (m *LabellingTaskResponseMutation) ClearExpert() {
+	m.clearedexpert = true
+}
+
+// ExpertCleared reports if the "expert" edge to the Expert entity was cleared.
+func (m *LabellingTaskResponseMutation) ExpertCleared() bool {
+	return m.clearedexpert
+}
+
+// ExpertID returns the "expert" edge ID in the mutation.
+func (m *LabellingTaskResponseMutation) ExpertID() (id int, exists bool) {
+	if m.expert != nil {
+		return *m.expert, true
+	}
+	return
+}
+
+// ExpertIDs returns the "expert" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ExpertID instead. It exists only for internal usage by the builders.
+func (m *LabellingTaskResponseMutation) ExpertIDs() (ids []int) {
+	if id := m.expert; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetExpert resets all changes to the "expert" edge.
+func (m *LabellingTaskResponseMutation) ResetExpert() {
+	m.expert = nil
+	m.clearedexpert = false
+}
+
 // Where appends a list predicates to the LabellingTaskResponseMutation builder.
 func (m *LabellingTaskResponseMutation) Where(ps ...predicate.LabellingTaskResponse) {
 	m.predicates = append(m.predicates, ps...)
@@ -1172,9 +1475,12 @@ func (m *LabellingTaskResponseMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *LabellingTaskResponseMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.task != nil {
 		edges = append(edges, labellingtaskresponse.EdgeTask)
+	}
+	if m.expert != nil {
+		edges = append(edges, labellingtaskresponse.EdgeExpert)
 	}
 	return edges
 }
@@ -1187,13 +1493,17 @@ func (m *LabellingTaskResponseMutation) AddedIDs(name string) []ent.Value {
 		if id := m.task; id != nil {
 			return []ent.Value{*id}
 		}
+	case labellingtaskresponse.EdgeExpert:
+		if id := m.expert; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *LabellingTaskResponseMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	return edges
 }
 
@@ -1205,9 +1515,12 @@ func (m *LabellingTaskResponseMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *LabellingTaskResponseMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedtask {
 		edges = append(edges, labellingtaskresponse.EdgeTask)
+	}
+	if m.clearedexpert {
+		edges = append(edges, labellingtaskresponse.EdgeExpert)
 	}
 	return edges
 }
@@ -1218,6 +1531,8 @@ func (m *LabellingTaskResponseMutation) EdgeCleared(name string) bool {
 	switch name {
 	case labellingtaskresponse.EdgeTask:
 		return m.clearedtask
+	case labellingtaskresponse.EdgeExpert:
+		return m.clearedexpert
 	}
 	return false
 }
@@ -1228,6 +1543,9 @@ func (m *LabellingTaskResponseMutation) ClearEdge(name string) error {
 	switch name {
 	case labellingtaskresponse.EdgeTask:
 		m.ClearTask()
+		return nil
+	case labellingtaskresponse.EdgeExpert:
+		m.ClearExpert()
 		return nil
 	}
 	return fmt.Errorf("unknown LabellingTaskResponse unique edge %s", name)
@@ -1240,6 +1558,511 @@ func (m *LabellingTaskResponseMutation) ResetEdge(name string) error {
 	case labellingtaskresponse.EdgeTask:
 		m.ResetTask()
 		return nil
+	case labellingtaskresponse.EdgeExpert:
+		m.ResetExpert()
+		return nil
 	}
 	return fmt.Errorf("unknown LabellingTaskResponse edge %s", name)
+}
+
+// QualificationMutation represents an operation that mutates the Qualification nodes in the graph.
+type QualificationMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	value          *schema.QualificationValue
+	clearedFields  map[string]struct{}
+	tasks          map[int]struct{}
+	removedtasks   map[int]struct{}
+	clearedtasks   bool
+	experts        map[int]struct{}
+	removedexperts map[int]struct{}
+	clearedexperts bool
+	done           bool
+	oldValue       func(context.Context) (*Qualification, error)
+	predicates     []predicate.Qualification
+}
+
+var _ ent.Mutation = (*QualificationMutation)(nil)
+
+// qualificationOption allows management of the mutation configuration using functional options.
+type qualificationOption func(*QualificationMutation)
+
+// newQualificationMutation creates new mutation for the Qualification entity.
+func newQualificationMutation(c config, op Op, opts ...qualificationOption) *QualificationMutation {
+	m := &QualificationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeQualification,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withQualificationID sets the ID field of the mutation.
+func withQualificationID(id int) qualificationOption {
+	return func(m *QualificationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Qualification
+		)
+		m.oldValue = func(ctx context.Context) (*Qualification, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Qualification.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withQualification sets the old Qualification of the mutation.
+func withQualification(node *Qualification) qualificationOption {
+	return func(m *QualificationMutation) {
+		m.oldValue = func(context.Context) (*Qualification, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m QualificationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m QualificationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *QualificationMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *QualificationMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Qualification.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetValue sets the "value" field.
+func (m *QualificationMutation) SetValue(sv schema.QualificationValue) {
+	m.value = &sv
+}
+
+// Value returns the value of the "value" field in the mutation.
+func (m *QualificationMutation) Value() (r schema.QualificationValue, exists bool) {
+	v := m.value
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldValue returns the old "value" field's value of the Qualification entity.
+// If the Qualification object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *QualificationMutation) OldValue(ctx context.Context) (v schema.QualificationValue, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldValue is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldValue requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldValue: %w", err)
+	}
+	return oldValue.Value, nil
+}
+
+// ResetValue resets all changes to the "value" field.
+func (m *QualificationMutation) ResetValue() {
+	m.value = nil
+}
+
+// AddTaskIDs adds the "tasks" edge to the LabellingTask entity by ids.
+func (m *QualificationMutation) AddTaskIDs(ids ...int) {
+	if m.tasks == nil {
+		m.tasks = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.tasks[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTasks clears the "tasks" edge to the LabellingTask entity.
+func (m *QualificationMutation) ClearTasks() {
+	m.clearedtasks = true
+}
+
+// TasksCleared reports if the "tasks" edge to the LabellingTask entity was cleared.
+func (m *QualificationMutation) TasksCleared() bool {
+	return m.clearedtasks
+}
+
+// RemoveTaskIDs removes the "tasks" edge to the LabellingTask entity by IDs.
+func (m *QualificationMutation) RemoveTaskIDs(ids ...int) {
+	if m.removedtasks == nil {
+		m.removedtasks = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.tasks, ids[i])
+		m.removedtasks[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTasks returns the removed IDs of the "tasks" edge to the LabellingTask entity.
+func (m *QualificationMutation) RemovedTasksIDs() (ids []int) {
+	for id := range m.removedtasks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TasksIDs returns the "tasks" edge IDs in the mutation.
+func (m *QualificationMutation) TasksIDs() (ids []int) {
+	for id := range m.tasks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTasks resets all changes to the "tasks" edge.
+func (m *QualificationMutation) ResetTasks() {
+	m.tasks = nil
+	m.clearedtasks = false
+	m.removedtasks = nil
+}
+
+// AddExpertIDs adds the "experts" edge to the Expert entity by ids.
+func (m *QualificationMutation) AddExpertIDs(ids ...int) {
+	if m.experts == nil {
+		m.experts = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.experts[ids[i]] = struct{}{}
+	}
+}
+
+// ClearExperts clears the "experts" edge to the Expert entity.
+func (m *QualificationMutation) ClearExperts() {
+	m.clearedexperts = true
+}
+
+// ExpertsCleared reports if the "experts" edge to the Expert entity was cleared.
+func (m *QualificationMutation) ExpertsCleared() bool {
+	return m.clearedexperts
+}
+
+// RemoveExpertIDs removes the "experts" edge to the Expert entity by IDs.
+func (m *QualificationMutation) RemoveExpertIDs(ids ...int) {
+	if m.removedexperts == nil {
+		m.removedexperts = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.experts, ids[i])
+		m.removedexperts[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedExperts returns the removed IDs of the "experts" edge to the Expert entity.
+func (m *QualificationMutation) RemovedExpertsIDs() (ids []int) {
+	for id := range m.removedexperts {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ExpertsIDs returns the "experts" edge IDs in the mutation.
+func (m *QualificationMutation) ExpertsIDs() (ids []int) {
+	for id := range m.experts {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetExperts resets all changes to the "experts" edge.
+func (m *QualificationMutation) ResetExperts() {
+	m.experts = nil
+	m.clearedexperts = false
+	m.removedexperts = nil
+}
+
+// Where appends a list predicates to the QualificationMutation builder.
+func (m *QualificationMutation) Where(ps ...predicate.Qualification) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the QualificationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *QualificationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Qualification, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *QualificationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *QualificationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Qualification).
+func (m *QualificationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *QualificationMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.value != nil {
+		fields = append(fields, qualification.FieldValue)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *QualificationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case qualification.FieldValue:
+		return m.Value()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *QualificationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case qualification.FieldValue:
+		return m.OldValue(ctx)
+	}
+	return nil, fmt.Errorf("unknown Qualification field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *QualificationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case qualification.FieldValue:
+		v, ok := value.(schema.QualificationValue)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetValue(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Qualification field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *QualificationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *QualificationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *QualificationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Qualification numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *QualificationMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *QualificationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *QualificationMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Qualification nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *QualificationMutation) ResetField(name string) error {
+	switch name {
+	case qualification.FieldValue:
+		m.ResetValue()
+		return nil
+	}
+	return fmt.Errorf("unknown Qualification field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *QualificationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.tasks != nil {
+		edges = append(edges, qualification.EdgeTasks)
+	}
+	if m.experts != nil {
+		edges = append(edges, qualification.EdgeExperts)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *QualificationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case qualification.EdgeTasks:
+		ids := make([]ent.Value, 0, len(m.tasks))
+		for id := range m.tasks {
+			ids = append(ids, id)
+		}
+		return ids
+	case qualification.EdgeExperts:
+		ids := make([]ent.Value, 0, len(m.experts))
+		for id := range m.experts {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *QualificationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.removedtasks != nil {
+		edges = append(edges, qualification.EdgeTasks)
+	}
+	if m.removedexperts != nil {
+		edges = append(edges, qualification.EdgeExperts)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *QualificationMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case qualification.EdgeTasks:
+		ids := make([]ent.Value, 0, len(m.removedtasks))
+		for id := range m.removedtasks {
+			ids = append(ids, id)
+		}
+		return ids
+	case qualification.EdgeExperts:
+		ids := make([]ent.Value, 0, len(m.removedexperts))
+		for id := range m.removedexperts {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *QualificationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedtasks {
+		edges = append(edges, qualification.EdgeTasks)
+	}
+	if m.clearedexperts {
+		edges = append(edges, qualification.EdgeExperts)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *QualificationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case qualification.EdgeTasks:
+		return m.clearedtasks
+	case qualification.EdgeExperts:
+		return m.clearedexperts
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *QualificationMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Qualification unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *QualificationMutation) ResetEdge(name string) error {
+	switch name {
+	case qualification.EdgeTasks:
+		m.ResetTasks()
+		return nil
+	case qualification.EdgeExperts:
+		m.ResetExperts()
+		return nil
+	}
+	return fmt.Errorf("unknown Qualification edge %s", name)
 }

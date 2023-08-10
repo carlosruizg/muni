@@ -226,6 +226,29 @@ func HasResponsesWith(preds ...predicate.LabellingTaskResponse) predicate.Labell
 	})
 }
 
+// HasExpertRequirements applies the HasEdge predicate on the "expert_requirements" edge.
+func HasExpertRequirements() predicate.LabellingTask {
+	return predicate.LabellingTask(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, ExpertRequirementsTable, ExpertRequirementsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasExpertRequirementsWith applies the HasEdge predicate on the "expert_requirements" edge with a given conditions (other predicates).
+func HasExpertRequirementsWith(preds ...predicate.Qualification) predicate.LabellingTask {
+	return predicate.LabellingTask(func(s *sql.Selector) {
+		step := newExpertRequirementsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.LabellingTask) predicate.LabellingTask {
 	return predicate.LabellingTask(func(s *sql.Selector) {

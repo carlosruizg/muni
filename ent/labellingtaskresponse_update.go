@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
 	"github.com/carlosruizg/muni/ent/predicate"
@@ -53,6 +54,25 @@ func (ltru *LabellingTaskResponseUpdate) SetTask(l *LabellingTask) *LabellingTas
 	return ltru.SetTaskID(l.ID)
 }
 
+// SetExpertID sets the "expert" edge to the Expert entity by ID.
+func (ltru *LabellingTaskResponseUpdate) SetExpertID(id int) *LabellingTaskResponseUpdate {
+	ltru.mutation.SetExpertID(id)
+	return ltru
+}
+
+// SetNillableExpertID sets the "expert" edge to the Expert entity by ID if the given value is not nil.
+func (ltru *LabellingTaskResponseUpdate) SetNillableExpertID(id *int) *LabellingTaskResponseUpdate {
+	if id != nil {
+		ltru = ltru.SetExpertID(*id)
+	}
+	return ltru
+}
+
+// SetExpert sets the "expert" edge to the Expert entity.
+func (ltru *LabellingTaskResponseUpdate) SetExpert(e *Expert) *LabellingTaskResponseUpdate {
+	return ltru.SetExpertID(e.ID)
+}
+
 // Mutation returns the LabellingTaskResponseMutation object of the builder.
 func (ltru *LabellingTaskResponseUpdate) Mutation() *LabellingTaskResponseMutation {
 	return ltru.mutation
@@ -61,6 +81,12 @@ func (ltru *LabellingTaskResponseUpdate) Mutation() *LabellingTaskResponseMutati
 // ClearTask clears the "task" edge to the LabellingTask entity.
 func (ltru *LabellingTaskResponseUpdate) ClearTask() *LabellingTaskResponseUpdate {
 	ltru.mutation.ClearTask()
+	return ltru
+}
+
+// ClearExpert clears the "expert" edge to the Expert entity.
+func (ltru *LabellingTaskResponseUpdate) ClearExpert() *LabellingTaskResponseUpdate {
+	ltru.mutation.ClearExpert()
 	return ltru
 }
 
@@ -132,6 +158,35 @@ func (ltru *LabellingTaskResponseUpdate) sqlSave(ctx context.Context) (n int, er
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ltru.mutation.ExpertCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   labellingtaskresponse.ExpertTable,
+			Columns: []string{labellingtaskresponse.ExpertColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(expert.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ltru.mutation.ExpertIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   labellingtaskresponse.ExpertTable,
+			Columns: []string{labellingtaskresponse.ExpertColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(expert.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ltru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{labellingtaskresponse.Label}
@@ -177,6 +232,25 @@ func (ltruo *LabellingTaskResponseUpdateOne) SetTask(l *LabellingTask) *Labellin
 	return ltruo.SetTaskID(l.ID)
 }
 
+// SetExpertID sets the "expert" edge to the Expert entity by ID.
+func (ltruo *LabellingTaskResponseUpdateOne) SetExpertID(id int) *LabellingTaskResponseUpdateOne {
+	ltruo.mutation.SetExpertID(id)
+	return ltruo
+}
+
+// SetNillableExpertID sets the "expert" edge to the Expert entity by ID if the given value is not nil.
+func (ltruo *LabellingTaskResponseUpdateOne) SetNillableExpertID(id *int) *LabellingTaskResponseUpdateOne {
+	if id != nil {
+		ltruo = ltruo.SetExpertID(*id)
+	}
+	return ltruo
+}
+
+// SetExpert sets the "expert" edge to the Expert entity.
+func (ltruo *LabellingTaskResponseUpdateOne) SetExpert(e *Expert) *LabellingTaskResponseUpdateOne {
+	return ltruo.SetExpertID(e.ID)
+}
+
 // Mutation returns the LabellingTaskResponseMutation object of the builder.
 func (ltruo *LabellingTaskResponseUpdateOne) Mutation() *LabellingTaskResponseMutation {
 	return ltruo.mutation
@@ -185,6 +259,12 @@ func (ltruo *LabellingTaskResponseUpdateOne) Mutation() *LabellingTaskResponseMu
 // ClearTask clears the "task" edge to the LabellingTask entity.
 func (ltruo *LabellingTaskResponseUpdateOne) ClearTask() *LabellingTaskResponseUpdateOne {
 	ltruo.mutation.ClearTask()
+	return ltruo
+}
+
+// ClearExpert clears the "expert" edge to the Expert entity.
+func (ltruo *LabellingTaskResponseUpdateOne) ClearExpert() *LabellingTaskResponseUpdateOne {
+	ltruo.mutation.ClearExpert()
 	return ltruo
 }
 
@@ -279,6 +359,35 @@ func (ltruo *LabellingTaskResponseUpdateOne) sqlSave(ctx context.Context) (_node
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(labellingtask.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ltruo.mutation.ExpertCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   labellingtaskresponse.ExpertTable,
+			Columns: []string{labellingtaskresponse.ExpertColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(expert.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ltruo.mutation.ExpertIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   labellingtaskresponse.ExpertTable,
+			Columns: []string{labellingtaskresponse.ExpertColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(expert.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -16,6 +16,8 @@ const (
 	FieldResponse = "response"
 	// EdgeTask holds the string denoting the task edge name in mutations.
 	EdgeTask = "task"
+	// EdgeExpert holds the string denoting the expert edge name in mutations.
+	EdgeExpert = "expert"
 	// Table holds the table name of the labellingtaskresponse in the database.
 	Table = "labelling_task_responses"
 	// TaskTable is the table that holds the task relation/edge.
@@ -25,6 +27,13 @@ const (
 	TaskInverseTable = "labelling_tasks"
 	// TaskColumn is the table column denoting the task relation/edge.
 	TaskColumn = "labelling_task_responses"
+	// ExpertTable is the table that holds the expert relation/edge.
+	ExpertTable = "labelling_task_responses"
+	// ExpertInverseTable is the table name for the Expert entity.
+	// It exists in this package in order to avoid circular dependency with the "expert" package.
+	ExpertInverseTable = "experts"
+	// ExpertColumn is the table column denoting the expert relation/edge.
+	ExpertColumn = "expert_task_responses"
 )
 
 // Columns holds all SQL columns for labellingtaskresponse fields.
@@ -36,6 +45,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "labelling_task_responses"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"expert_task_responses",
 	"labelling_task_responses",
 }
 
@@ -73,10 +83,24 @@ func ByTaskField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTaskStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByExpertField orders the results by expert field.
+func ByExpertField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newExpertStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newTaskStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TaskInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, TaskTable, TaskColumn),
+	)
+}
+func newExpertStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ExpertInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ExpertTable, ExpertColumn),
 	)
 }

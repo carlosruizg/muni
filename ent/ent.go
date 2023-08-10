@@ -15,6 +15,7 @@ import (
 	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
+	"github.com/carlosruizg/muni/ent/qualification"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -78,6 +79,7 @@ func checkColumn(table, column string) error {
 			expert.Table:                expert.ValidColumn,
 			labellingtask.Table:         labellingtask.ValidColumn,
 			labellingtaskresponse.Table: labellingtaskresponse.ValidColumn,
+			qualification.Table:         qualification.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

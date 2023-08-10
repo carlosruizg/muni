@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
+	"github.com/carlosruizg/muni/ent/qualification"
 )
 
 // LabellingTaskCreate is the builder for creating a LabellingTask entity.
@@ -53,6 +54,21 @@ func (ltc *LabellingTaskCreate) AddResponses(l ...*LabellingTaskResponse) *Label
 		ids[i] = l[i].ID
 	}
 	return ltc.AddResponseIDs(ids...)
+}
+
+// AddExpertRequirementIDs adds the "expert_requirements" edge to the Qualification entity by IDs.
+func (ltc *LabellingTaskCreate) AddExpertRequirementIDs(ids ...int) *LabellingTaskCreate {
+	ltc.mutation.AddExpertRequirementIDs(ids...)
+	return ltc
+}
+
+// AddExpertRequirements adds the "expert_requirements" edges to the Qualification entity.
+func (ltc *LabellingTaskCreate) AddExpertRequirements(q ...*Qualification) *LabellingTaskCreate {
+	ids := make([]int, len(q))
+	for i := range q {
+		ids[i] = q[i].ID
+	}
+	return ltc.AddExpertRequirementIDs(ids...)
 }
 
 // Mutation returns the LabellingTaskMutation object of the builder.
@@ -140,6 +156,22 @@ func (ltc *LabellingTaskCreate) createSpec() (*LabellingTask, *sqlgraph.CreateSp
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(labellingtaskresponse.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ltc.mutation.ExpertRequirementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   labellingtask.ExpertRequirementsTable,
+			Columns: labellingtask.ExpertRequirementsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(qualification.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

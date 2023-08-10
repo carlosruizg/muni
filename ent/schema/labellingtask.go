@@ -25,6 +25,7 @@ func (LabellingTask) Fields() []ent.Field {
 func (LabellingTask) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("responses", LabellingTaskResponse.Type),
+		edge.To("expert_requirements", Qualification.Type),
 	}
 }
 

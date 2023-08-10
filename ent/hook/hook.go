@@ -45,6 +45,18 @@ func (f LabellingTaskResponseFunc) Mutate(ctx context.Context, m ent.Mutation) (
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LabellingTaskResponseMutation", m)
 }
 
+// The QualificationFunc type is an adapter to allow the use of ordinary
+// function as Qualification mutator.
+type QualificationFunc func(context.Context, *ent.QualificationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f QualificationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.QualificationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QualificationMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, ent.Mutation) bool
 
