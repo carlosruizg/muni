@@ -16,6 +16,11 @@ func (r *mutationResolver) CreateExpert(ctx context.Context, input ent.CreateExp
 	return r.client.Expert.Create().SetInput(input).Save(ctx)
 }
 
+// UpdateExpert is the resolver for the updateExpert field.
+func (r *mutationResolver) UpdateExpert(ctx context.Context, id int, input ent.UpdateExpertInput) (*ent.Expert, error) {
+	return r.client.Expert.UpdateOneID(id).SetInput(input).Save(ctx)
+}
+
 // CreateLabellingTask is the resolver for the createLabellingTask field.
 func (r *mutationResolver) CreateLabellingTask(ctx context.Context, input ent.CreateLabellingTaskInput) (*ent.LabellingTask, error) {
 	panic(fmt.Errorf("not implemented: CreateLabellingTask - createLabellingTask"))

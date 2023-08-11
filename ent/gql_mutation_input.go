@@ -26,6 +26,54 @@ func (c *ExpertCreate) SetInput(i CreateExpertInput) *ExpertCreate {
 	return c
 }
 
+// UpdateExpertInput represents a mutation input for updating experts.
+type UpdateExpertInput struct {
+	Name                   *string
+	ClearTaskResponses     bool
+	AddTaskResponseIDs     []int
+	RemoveTaskResponseIDs  []int
+	ClearQualifications    bool
+	AddQualificationIDs    []int
+	RemoveQualificationIDs []int
+}
+
+// Mutate applies the UpdateExpertInput on the ExpertMutation builder.
+func (i *UpdateExpertInput) Mutate(m *ExpertMutation) {
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
+	if i.ClearTaskResponses {
+		m.ClearTaskResponses()
+	}
+	if v := i.AddTaskResponseIDs; len(v) > 0 {
+		m.AddTaskResponseIDs(v...)
+	}
+	if v := i.RemoveTaskResponseIDs; len(v) > 0 {
+		m.RemoveTaskResponseIDs(v...)
+	}
+	if i.ClearQualifications {
+		m.ClearQualifications()
+	}
+	if v := i.AddQualificationIDs; len(v) > 0 {
+		m.AddQualificationIDs(v...)
+	}
+	if v := i.RemoveQualificationIDs; len(v) > 0 {
+		m.RemoveQualificationIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateExpertInput on the ExpertUpdate builder.
+func (c *ExpertUpdate) SetInput(i UpdateExpertInput) *ExpertUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateExpertInput on the ExpertUpdateOne builder.
+func (c *ExpertUpdateOne) SetInput(i UpdateExpertInput) *ExpertUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
+
 // CreateLabellingTaskInput represents a mutation input for creating labellingtasks.
 type CreateLabellingTaskInput struct {
 	Title                string

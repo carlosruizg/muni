@@ -27,15 +27,16 @@ func main() {
 	if err != nil {
 		log.Fatal("opening ent client", err)
 	}
+	ctx := context.Background()
 	if err := dbClient.EntClient.Schema.Create(
-		context.Background(),
+		ctx,
 		migrate.WithGlobalUniqueID(true),
 	); err != nil {
 		log.Fatal("opening ent client", err)
 	}
 
 	if len(os.Args) > 1 && os.Args[1] == "test_data" {
-		createTestData(dbClient)
+		createTestData(ctx, dbClient)
 	}
 	// Configure the server and start listening on :8081.
 	srv := handler.NewDefaultServer(muni.NewSchema(dbClient.EntClient))
@@ -49,6 +50,12 @@ func main() {
 	}
 }
 
-func createTestData(dbClient *muni.DB) {
-	// dbClient.EntClient.Qualification.Create().set
+func createTestData(ctx context.Context, dbClient *muni.DB) {
+	experts, _ := dbClient.EntClient.Expert.Query().All(ctx)
+	fmt.Printf("%+v \n", experts)
+	quali, _ := dbClient.EntClient.Qualification.Query().All(ctx)
+	fmt.Printf("%+v \n", quali)
+	// quali, + := dbClient.EntClient.
+	// dbClient.EntClient.Qualification.Create().SetValue(schema.Coder).SaveX(ctx)
+	// dbClient.EntClient.Qualification.Create().SetValue(schema.Medical).SaveX(ctx)
 }
