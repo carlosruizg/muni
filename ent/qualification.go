@@ -9,7 +9,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/carlosruizg/muni/ent/qualification"
-	"github.com/carlosruizg/muni/ent/schema"
+	"github.com/carlosruizg/muni/enums"
 )
 
 // Qualification is the model entity for the Qualification schema.
@@ -18,7 +18,7 @@ type Qualification struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Value holds the value of the "value" field.
-	Value schema.QualificationValue `json:"value,omitempty"`
+	Value enums.QualificationValue `json:"value,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the QualificationQuery when eager-loading is set.
 	Edges        QualificationEdges `json:"edges"`
@@ -93,7 +93,7 @@ func (q *Qualification) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field value", values[i])
 			} else if value.Valid {
-				q.Value = schema.QualificationValue(value.String)
+				q.Value = enums.QualificationValue(value.String)
 			}
 		default:
 			q.selectValues.Set(columns[i], values[i])

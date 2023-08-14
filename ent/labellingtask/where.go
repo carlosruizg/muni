@@ -63,6 +63,16 @@ func Description(v string) predicate.LabellingTask {
 	return predicate.LabellingTask(sql.FieldEQ(FieldDescription, v))
 }
 
+// QualificationRequired applies equality check predicate on the "qualification_required" field. It's identical to QualificationRequiredEQ.
+func QualificationRequired(v bool) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldEQ(FieldQualificationRequired, v))
+}
+
+// CallbackURL applies equality check predicate on the "callback_url" field. It's identical to CallbackURLEQ.
+func CallbackURL(v string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldEQ(FieldCallbackURL, v))
+}
+
 // TitleEQ applies the EQ predicate on the "title" field.
 func TitleEQ(v string) predicate.LabellingTask {
 	return predicate.LabellingTask(sql.FieldEQ(FieldTitle, v))
@@ -201,6 +211,91 @@ func DescriptionEqualFold(v string) predicate.LabellingTask {
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.LabellingTask {
 	return predicate.LabellingTask(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// QualificationRequiredEQ applies the EQ predicate on the "qualification_required" field.
+func QualificationRequiredEQ(v bool) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldEQ(FieldQualificationRequired, v))
+}
+
+// QualificationRequiredNEQ applies the NEQ predicate on the "qualification_required" field.
+func QualificationRequiredNEQ(v bool) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldNEQ(FieldQualificationRequired, v))
+}
+
+// CallbackURLEQ applies the EQ predicate on the "callback_url" field.
+func CallbackURLEQ(v string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldEQ(FieldCallbackURL, v))
+}
+
+// CallbackURLNEQ applies the NEQ predicate on the "callback_url" field.
+func CallbackURLNEQ(v string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldNEQ(FieldCallbackURL, v))
+}
+
+// CallbackURLIn applies the In predicate on the "callback_url" field.
+func CallbackURLIn(vs ...string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldIn(FieldCallbackURL, vs...))
+}
+
+// CallbackURLNotIn applies the NotIn predicate on the "callback_url" field.
+func CallbackURLNotIn(vs ...string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldNotIn(FieldCallbackURL, vs...))
+}
+
+// CallbackURLGT applies the GT predicate on the "callback_url" field.
+func CallbackURLGT(v string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldGT(FieldCallbackURL, v))
+}
+
+// CallbackURLGTE applies the GTE predicate on the "callback_url" field.
+func CallbackURLGTE(v string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldGTE(FieldCallbackURL, v))
+}
+
+// CallbackURLLT applies the LT predicate on the "callback_url" field.
+func CallbackURLLT(v string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldLT(FieldCallbackURL, v))
+}
+
+// CallbackURLLTE applies the LTE predicate on the "callback_url" field.
+func CallbackURLLTE(v string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldLTE(FieldCallbackURL, v))
+}
+
+// CallbackURLContains applies the Contains predicate on the "callback_url" field.
+func CallbackURLContains(v string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldContains(FieldCallbackURL, v))
+}
+
+// CallbackURLHasPrefix applies the HasPrefix predicate on the "callback_url" field.
+func CallbackURLHasPrefix(v string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldHasPrefix(FieldCallbackURL, v))
+}
+
+// CallbackURLHasSuffix applies the HasSuffix predicate on the "callback_url" field.
+func CallbackURLHasSuffix(v string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldHasSuffix(FieldCallbackURL, v))
+}
+
+// CallbackURLIsNil applies the IsNil predicate on the "callback_url" field.
+func CallbackURLIsNil() predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldIsNull(FieldCallbackURL))
+}
+
+// CallbackURLNotNil applies the NotNil predicate on the "callback_url" field.
+func CallbackURLNotNil() predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldNotNull(FieldCallbackURL))
+}
+
+// CallbackURLEqualFold applies the EqualFold predicate on the "callback_url" field.
+func CallbackURLEqualFold(v string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldEqualFold(FieldCallbackURL, v))
+}
+
+// CallbackURLContainsFold applies the ContainsFold predicate on the "callback_url" field.
+func CallbackURLContainsFold(v string) predicate.LabellingTask {
+	return predicate.LabellingTask(sql.FieldContainsFold(FieldCallbackURL, v))
 }
 
 // HasResponses applies the HasEdge predicate on the "responses" edge.

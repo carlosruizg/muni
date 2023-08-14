@@ -15,7 +15,7 @@ import (
 	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
 	"github.com/carlosruizg/muni/ent/predicate"
 	"github.com/carlosruizg/muni/ent/qualification"
-	"github.com/carlosruizg/muni/ent/schema"
+	"github.com/carlosruizg/muni/enums"
 )
 
 const (
@@ -543,6 +543,8 @@ type LabellingTaskMutation struct {
 	id                         *int
 	title                      *string
 	description                *string
+	qualification_required     *bool
+	callback_url               *string
 	clearedFields              map[string]struct{}
 	responses                  map[int]struct{}
 	removedresponses           map[int]struct{}
@@ -738,6 +740,91 @@ func (m *LabellingTaskMutation) ResetDescription() {
 	delete(m.clearedFields, labellingtask.FieldDescription)
 }
 
+// SetQualificationRequired sets the "qualification_required" field.
+func (m *LabellingTaskMutation) SetQualificationRequired(b bool) {
+	m.qualification_required = &b
+}
+
+// QualificationRequired returns the value of the "qualification_required" field in the mutation.
+func (m *LabellingTaskMutation) QualificationRequired() (r bool, exists bool) {
+	v := m.qualification_required
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQualificationRequired returns the old "qualification_required" field's value of the LabellingTask entity.
+// If the LabellingTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LabellingTaskMutation) OldQualificationRequired(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQualificationRequired is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQualificationRequired requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQualificationRequired: %w", err)
+	}
+	return oldValue.QualificationRequired, nil
+}
+
+// ResetQualificationRequired resets all changes to the "qualification_required" field.
+func (m *LabellingTaskMutation) ResetQualificationRequired() {
+	m.qualification_required = nil
+}
+
+// SetCallbackURL sets the "callback_url" field.
+func (m *LabellingTaskMutation) SetCallbackURL(s string) {
+	m.callback_url = &s
+}
+
+// CallbackURL returns the value of the "callback_url" field in the mutation.
+func (m *LabellingTaskMutation) CallbackURL() (r string, exists bool) {
+	v := m.callback_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCallbackURL returns the old "callback_url" field's value of the LabellingTask entity.
+// If the LabellingTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LabellingTaskMutation) OldCallbackURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCallbackURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCallbackURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCallbackURL: %w", err)
+	}
+	return oldValue.CallbackURL, nil
+}
+
+// ClearCallbackURL clears the value of the "callback_url" field.
+func (m *LabellingTaskMutation) ClearCallbackURL() {
+	m.callback_url = nil
+	m.clearedFields[labellingtask.FieldCallbackURL] = struct{}{}
+}
+
+// CallbackURLCleared returns if the "callback_url" field was cleared in this mutation.
+func (m *LabellingTaskMutation) CallbackURLCleared() bool {
+	_, ok := m.clearedFields[labellingtask.FieldCallbackURL]
+	return ok
+}
+
+// ResetCallbackURL resets all changes to the "callback_url" field.
+func (m *LabellingTaskMutation) ResetCallbackURL() {
+	m.callback_url = nil
+	delete(m.clearedFields, labellingtask.FieldCallbackURL)
+}
+
 // AddResponseIDs adds the "responses" edge to the LabellingTaskResponse entity by ids.
 func (m *LabellingTaskMutation) AddResponseIDs(ids ...int) {
 	if m.responses == nil {
@@ -880,12 +967,18 @@ func (m *LabellingTaskMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *LabellingTaskMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 4)
 	if m.title != nil {
 		fields = append(fields, labellingtask.FieldTitle)
 	}
 	if m.description != nil {
 		fields = append(fields, labellingtask.FieldDescription)
+	}
+	if m.qualification_required != nil {
+		fields = append(fields, labellingtask.FieldQualificationRequired)
+	}
+	if m.callback_url != nil {
+		fields = append(fields, labellingtask.FieldCallbackURL)
 	}
 	return fields
 }
@@ -899,6 +992,10 @@ func (m *LabellingTaskMutation) Field(name string) (ent.Value, bool) {
 		return m.Title()
 	case labellingtask.FieldDescription:
 		return m.Description()
+	case labellingtask.FieldQualificationRequired:
+		return m.QualificationRequired()
+	case labellingtask.FieldCallbackURL:
+		return m.CallbackURL()
 	}
 	return nil, false
 }
@@ -912,6 +1009,10 @@ func (m *LabellingTaskMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldTitle(ctx)
 	case labellingtask.FieldDescription:
 		return m.OldDescription(ctx)
+	case labellingtask.FieldQualificationRequired:
+		return m.OldQualificationRequired(ctx)
+	case labellingtask.FieldCallbackURL:
+		return m.OldCallbackURL(ctx)
 	}
 	return nil, fmt.Errorf("unknown LabellingTask field %s", name)
 }
@@ -934,6 +1035,20 @@ func (m *LabellingTaskMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
+		return nil
+	case labellingtask.FieldQualificationRequired:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQualificationRequired(v)
+		return nil
+	case labellingtask.FieldCallbackURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCallbackURL(v)
 		return nil
 	}
 	return fmt.Errorf("unknown LabellingTask field %s", name)
@@ -968,6 +1083,9 @@ func (m *LabellingTaskMutation) ClearedFields() []string {
 	if m.FieldCleared(labellingtask.FieldDescription) {
 		fields = append(fields, labellingtask.FieldDescription)
 	}
+	if m.FieldCleared(labellingtask.FieldCallbackURL) {
+		fields = append(fields, labellingtask.FieldCallbackURL)
+	}
 	return fields
 }
 
@@ -985,6 +1103,9 @@ func (m *LabellingTaskMutation) ClearField(name string) error {
 	case labellingtask.FieldDescription:
 		m.ClearDescription()
 		return nil
+	case labellingtask.FieldCallbackURL:
+		m.ClearCallbackURL()
+		return nil
 	}
 	return fmt.Errorf("unknown LabellingTask nullable field %s", name)
 }
@@ -998,6 +1119,12 @@ func (m *LabellingTaskMutation) ResetField(name string) error {
 		return nil
 	case labellingtask.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case labellingtask.FieldQualificationRequired:
+		m.ResetQualificationRequired()
+		return nil
+	case labellingtask.FieldCallbackURL:
+		m.ResetCallbackURL()
 		return nil
 	}
 	return fmt.Errorf("unknown LabellingTask field %s", name)
@@ -1571,7 +1698,7 @@ type QualificationMutation struct {
 	op             Op
 	typ            string
 	id             *int
-	value          *schema.QualificationValue
+	value          *enums.QualificationValue
 	clearedFields  map[string]struct{}
 	tasks          map[int]struct{}
 	removedtasks   map[int]struct{}
@@ -1683,12 +1810,12 @@ func (m *QualificationMutation) IDs(ctx context.Context) ([]int, error) {
 }
 
 // SetValue sets the "value" field.
-func (m *QualificationMutation) SetValue(sv schema.QualificationValue) {
-	m.value = &sv
+func (m *QualificationMutation) SetValue(ev enums.QualificationValue) {
+	m.value = &ev
 }
 
 // Value returns the value of the "value" field in the mutation.
-func (m *QualificationMutation) Value() (r schema.QualificationValue, exists bool) {
+func (m *QualificationMutation) Value() (r enums.QualificationValue, exists bool) {
 	v := m.value
 	if v == nil {
 		return
@@ -1699,7 +1826,7 @@ func (m *QualificationMutation) Value() (r schema.QualificationValue, exists boo
 // OldValue returns the old "value" field's value of the Qualification entity.
 // If the Qualification object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *QualificationMutation) OldValue(ctx context.Context) (v schema.QualificationValue, err error) {
+func (m *QualificationMutation) OldValue(ctx context.Context) (v enums.QualificationValue, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldValue is only allowed on UpdateOne operations")
 	}
@@ -1895,7 +2022,7 @@ func (m *QualificationMutation) OldField(ctx context.Context, name string) (ent.
 func (m *QualificationMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case qualification.FieldValue:
-		v, ok := value.(schema.QualificationValue)
+		v, ok := value.(enums.QualificationValue)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

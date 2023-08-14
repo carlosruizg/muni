@@ -156,6 +156,16 @@ func (lt *LabellingTaskQuery) collectField(ctx context.Context, opCtx *graphql.O
 				selectedFields = append(selectedFields, labellingtask.FieldDescription)
 				fieldSeen[labellingtask.FieldDescription] = struct{}{}
 			}
+		case "qualificationRequired":
+			if _, ok := fieldSeen[labellingtask.FieldQualificationRequired]; !ok {
+				selectedFields = append(selectedFields, labellingtask.FieldQualificationRequired)
+				fieldSeen[labellingtask.FieldQualificationRequired] = struct{}{}
+			}
+		case "callbackURL":
+			if _, ok := fieldSeen[labellingtask.FieldCallbackURL]; !ok {
+				selectedFields = append(selectedFields, labellingtask.FieldCallbackURL)
+				fieldSeen[labellingtask.FieldCallbackURL] = struct{}{}
+			}
 		case "id":
 		case "__typename":
 		default:

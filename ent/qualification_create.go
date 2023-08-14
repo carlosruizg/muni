@@ -12,7 +12,7 @@ import (
 	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/qualification"
-	"github.com/carlosruizg/muni/ent/schema"
+	"github.com/carlosruizg/muni/enums"
 )
 
 // QualificationCreate is the builder for creating a Qualification entity.
@@ -23,8 +23,8 @@ type QualificationCreate struct {
 }
 
 // SetValue sets the "value" field.
-func (qc *QualificationCreate) SetValue(sv schema.QualificationValue) *QualificationCreate {
-	qc.mutation.SetValue(sv)
+func (qc *QualificationCreate) SetValue(ev enums.QualificationValue) *QualificationCreate {
+	qc.mutation.SetValue(ev)
 	return qc
 }
 

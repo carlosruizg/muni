@@ -24,6 +24,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "title", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "qualification_required", Type: field.TypeBool},
+		{Name: "callback_url", Type: field.TypeString, Nullable: true},
 	}
 	// LabellingTasksTable holds the schema information for the "labelling_tasks" table.
 	LabellingTasksTable = &schema.Table{

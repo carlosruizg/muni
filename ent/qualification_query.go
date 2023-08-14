@@ -338,7 +338,7 @@ func (qq *QualificationQuery) WithExperts(opts ...func(*ExpertQuery)) *Qualifica
 // Example:
 //
 //	var v []struct {
-//		Value schema.QualificationValue `json:"value,omitempty"`
+//		Value enums.QualificationValue `json:"value,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -361,7 +361,7 @@ func (qq *QualificationQuery) GroupBy(field string, fields ...string) *Qualifica
 // Example:
 //
 //	var v []struct {
-//		Value schema.QualificationValue `json:"value,omitempty"`
+//		Value enums.QualificationValue `json:"value,omitempty"`
 //	}
 //
 //	client.Qualification.Query().

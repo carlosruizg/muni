@@ -55,6 +55,32 @@ func (ltu *LabellingTaskUpdate) ClearDescription() *LabellingTaskUpdate {
 	return ltu
 }
 
+// SetQualificationRequired sets the "qualification_required" field.
+func (ltu *LabellingTaskUpdate) SetQualificationRequired(b bool) *LabellingTaskUpdate {
+	ltu.mutation.SetQualificationRequired(b)
+	return ltu
+}
+
+// SetCallbackURL sets the "callback_url" field.
+func (ltu *LabellingTaskUpdate) SetCallbackURL(s string) *LabellingTaskUpdate {
+	ltu.mutation.SetCallbackURL(s)
+	return ltu
+}
+
+// SetNillableCallbackURL sets the "callback_url" field if the given value is not nil.
+func (ltu *LabellingTaskUpdate) SetNillableCallbackURL(s *string) *LabellingTaskUpdate {
+	if s != nil {
+		ltu.SetCallbackURL(*s)
+	}
+	return ltu
+}
+
+// ClearCallbackURL clears the value of the "callback_url" field.
+func (ltu *LabellingTaskUpdate) ClearCallbackURL() *LabellingTaskUpdate {
+	ltu.mutation.ClearCallbackURL()
+	return ltu
+}
+
 // AddResponseIDs adds the "responses" edge to the LabellingTaskResponse entity by IDs.
 func (ltu *LabellingTaskUpdate) AddResponseIDs(ids ...int) *LabellingTaskUpdate {
 	ltu.mutation.AddResponseIDs(ids...)
@@ -190,6 +216,15 @@ func (ltu *LabellingTaskUpdate) sqlSave(ctx context.Context) (n int, err error) 
 	if ltu.mutation.DescriptionCleared() {
 		_spec.ClearField(labellingtask.FieldDescription, field.TypeString)
 	}
+	if value, ok := ltu.mutation.QualificationRequired(); ok {
+		_spec.SetField(labellingtask.FieldQualificationRequired, field.TypeBool, value)
+	}
+	if value, ok := ltu.mutation.CallbackURL(); ok {
+		_spec.SetField(labellingtask.FieldCallbackURL, field.TypeString, value)
+	}
+	if ltu.mutation.CallbackURLCleared() {
+		_spec.ClearField(labellingtask.FieldCallbackURL, field.TypeString)
+	}
 	if ltu.mutation.ResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -323,6 +358,32 @@ func (ltuo *LabellingTaskUpdateOne) SetNillableDescription(s *string) *Labelling
 // ClearDescription clears the value of the "description" field.
 func (ltuo *LabellingTaskUpdateOne) ClearDescription() *LabellingTaskUpdateOne {
 	ltuo.mutation.ClearDescription()
+	return ltuo
+}
+
+// SetQualificationRequired sets the "qualification_required" field.
+func (ltuo *LabellingTaskUpdateOne) SetQualificationRequired(b bool) *LabellingTaskUpdateOne {
+	ltuo.mutation.SetQualificationRequired(b)
+	return ltuo
+}
+
+// SetCallbackURL sets the "callback_url" field.
+func (ltuo *LabellingTaskUpdateOne) SetCallbackURL(s string) *LabellingTaskUpdateOne {
+	ltuo.mutation.SetCallbackURL(s)
+	return ltuo
+}
+
+// SetNillableCallbackURL sets the "callback_url" field if the given value is not nil.
+func (ltuo *LabellingTaskUpdateOne) SetNillableCallbackURL(s *string) *LabellingTaskUpdateOne {
+	if s != nil {
+		ltuo.SetCallbackURL(*s)
+	}
+	return ltuo
+}
+
+// ClearCallbackURL clears the value of the "callback_url" field.
+func (ltuo *LabellingTaskUpdateOne) ClearCallbackURL() *LabellingTaskUpdateOne {
+	ltuo.mutation.ClearCallbackURL()
 	return ltuo
 }
 
@@ -490,6 +551,15 @@ func (ltuo *LabellingTaskUpdateOne) sqlSave(ctx context.Context) (_node *Labelli
 	}
 	if ltuo.mutation.DescriptionCleared() {
 		_spec.ClearField(labellingtask.FieldDescription, field.TypeString)
+	}
+	if value, ok := ltuo.mutation.QualificationRequired(); ok {
+		_spec.SetField(labellingtask.FieldQualificationRequired, field.TypeBool, value)
+	}
+	if value, ok := ltuo.mutation.CallbackURL(); ok {
+		_spec.SetField(labellingtask.FieldCallbackURL, field.TypeString, value)
+	}
+	if ltuo.mutation.CallbackURLCleared() {
+		_spec.ClearField(labellingtask.FieldCallbackURL, field.TypeString)
 	}
 	if ltuo.mutation.ResponsesCleared() {
 		edge := &sqlgraph.EdgeSpec{

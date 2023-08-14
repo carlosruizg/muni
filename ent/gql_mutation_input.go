@@ -76,10 +76,12 @@ func (c *ExpertUpdateOne) SetInput(i UpdateExpertInput) *ExpertUpdateOne {
 
 // CreateLabellingTaskInput represents a mutation input for creating labellingtasks.
 type CreateLabellingTaskInput struct {
-	Title                string
-	Description          *string
-	ResponseIDs          []int
-	ExpertRequirementIDs []int
+	Title                 string
+	Description           *string
+	QualificationRequired bool
+	CallbackURL           *string
+	ResponseIDs           []int
+	ExpertRequirementIDs  []int
 }
 
 // Mutate applies the CreateLabellingTaskInput on the LabellingTaskMutation builder.
@@ -87,6 +89,10 @@ func (i *CreateLabellingTaskInput) Mutate(m *LabellingTaskMutation) {
 	m.SetTitle(i.Title)
 	if v := i.Description; v != nil {
 		m.SetDescription(*v)
+	}
+	m.SetQualificationRequired(i.QualificationRequired)
+	if v := i.CallbackURL; v != nil {
+		m.SetCallbackURL(*v)
 	}
 	if v := i.ResponseIDs; len(v) > 0 {
 		m.AddResponseIDs(v...)
@@ -98,6 +104,74 @@ func (i *CreateLabellingTaskInput) Mutate(m *LabellingTaskMutation) {
 
 // SetInput applies the change-set in the CreateLabellingTaskInput on the LabellingTaskCreate builder.
 func (c *LabellingTaskCreate) SetInput(i CreateLabellingTaskInput) *LabellingTaskCreate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// UpdateLabellingTaskInput represents a mutation input for updating labellingtasks.
+type UpdateLabellingTaskInput struct {
+	Title                      *string
+	ClearDescription           bool
+	Description                *string
+	QualificationRequired      *bool
+	ClearCallbackURL           bool
+	CallbackURL                *string
+	ClearResponses             bool
+	AddResponseIDs             []int
+	RemoveResponseIDs          []int
+	ClearExpertRequirements    bool
+	AddExpertRequirementIDs    []int
+	RemoveExpertRequirementIDs []int
+}
+
+// Mutate applies the UpdateLabellingTaskInput on the LabellingTaskMutation builder.
+func (i *UpdateLabellingTaskInput) Mutate(m *LabellingTaskMutation) {
+	if v := i.Title; v != nil {
+		m.SetTitle(*v)
+	}
+	if i.ClearDescription {
+		m.ClearDescription()
+	}
+	if v := i.Description; v != nil {
+		m.SetDescription(*v)
+	}
+	if v := i.QualificationRequired; v != nil {
+		m.SetQualificationRequired(*v)
+	}
+	if i.ClearCallbackURL {
+		m.ClearCallbackURL()
+	}
+	if v := i.CallbackURL; v != nil {
+		m.SetCallbackURL(*v)
+	}
+	if i.ClearResponses {
+		m.ClearResponses()
+	}
+	if v := i.AddResponseIDs; len(v) > 0 {
+		m.AddResponseIDs(v...)
+	}
+	if v := i.RemoveResponseIDs; len(v) > 0 {
+		m.RemoveResponseIDs(v...)
+	}
+	if i.ClearExpertRequirements {
+		m.ClearExpertRequirements()
+	}
+	if v := i.AddExpertRequirementIDs; len(v) > 0 {
+		m.AddExpertRequirementIDs(v...)
+	}
+	if v := i.RemoveExpertRequirementIDs; len(v) > 0 {
+		m.RemoveExpertRequirementIDs(v...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateLabellingTaskInput on the LabellingTaskUpdate builder.
+func (c *LabellingTaskUpdate) SetInput(i UpdateLabellingTaskInput) *LabellingTaskUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateLabellingTaskInput on the LabellingTaskUpdateOne builder.
+func (c *LabellingTaskUpdateOne) SetInput(i UpdateLabellingTaskInput) *LabellingTaskUpdateOne {
 	i.Mutate(c.Mutation())
 	return c
 }

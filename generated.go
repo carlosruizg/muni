@@ -16,7 +16,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/carlosruizg/muni/ent"
-	"github.com/carlosruizg/muni/ent/schema"
+	"github.com/carlosruizg/muni/enums"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -55,11 +55,13 @@ type ComplexityRoot struct {
 	}
 
 	LabellingTask struct {
-		Description        func(childComplexity int) int
-		ExpertRequirements func(childComplexity int) int
-		ID                 func(childComplexity int) int
-		Responses          func(childComplexity int) int
-		Title              func(childComplexity int) int
+		CallbackURL           func(childComplexity int) int
+		Description           func(childComplexity int) int
+		ExpertRequirements    func(childComplexity int) int
+		ID                    func(childComplexity int) int
+		QualificationRequired func(childComplexity int) int
+		Responses             func(childComplexity int) int
+		Title                 func(childComplexity int) int
 	}
 
 	LabellingTaskResponse struct {
@@ -156,6 +158,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Expert.TaskResponses(childComplexity), true
 
+	case "LabellingTask.callbackURL":
+		if e.complexity.LabellingTask.CallbackURL == nil {
+			break
+		}
+
+		return e.complexity.LabellingTask.CallbackURL(childComplexity), true
+
 	case "LabellingTask.description":
 		if e.complexity.LabellingTask.Description == nil {
 			break
@@ -176,6 +185,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LabellingTask.ID(childComplexity), true
+
+	case "LabellingTask.qualificationRequired":
+		if e.complexity.LabellingTask.QualificationRequired == nil {
+			break
+		}
+
+		return e.complexity.LabellingTask.QualificationRequired(childComplexity), true
 
 	case "LabellingTask.responses":
 		if e.complexity.LabellingTask.Responses == nil {
@@ -380,6 +396,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateLabellingTaskInput,
 		ec.unmarshalInputCreateLabellingTaskResponseInput,
 		ec.unmarshalInputUpdateExpertInput,
+		ec.unmarshalInputUpdateLabellingTaskInput,
 	)
 	first := true
 
@@ -968,6 +985,91 @@ func (ec *executionContext) fieldContext_LabellingTask_description(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _LabellingTask_qualificationRequired(ctx context.Context, field graphql.CollectedField, obj *ent.LabellingTask) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LabellingTask_qualificationRequired(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.QualificationRequired, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LabellingTask_qualificationRequired(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LabellingTask",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _LabellingTask_callbackURL(ctx context.Context, field graphql.CollectedField, obj *ent.LabellingTask) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_LabellingTask_callbackURL(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CallbackURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_LabellingTask_callbackURL(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "LabellingTask",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _LabellingTask_responses(ctx context.Context, field graphql.CollectedField, obj *ent.LabellingTask) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_LabellingTask_responses(ctx, field)
 	if err != nil {
@@ -1200,6 +1302,10 @@ func (ec *executionContext) fieldContext_LabellingTaskResponse_task(ctx context.
 				return ec.fieldContext_LabellingTask_title(ctx, field)
 			case "description":
 				return ec.fieldContext_LabellingTask_description(ctx, field)
+			case "qualificationRequired":
+				return ec.fieldContext_LabellingTask_qualificationRequired(ctx, field)
+			case "callbackURL":
+				return ec.fieldContext_LabellingTask_callbackURL(ctx, field)
 			case "responses":
 				return ec.fieldContext_LabellingTask_responses(ctx, field)
 			case "expertRequirements":
@@ -1437,6 +1543,10 @@ func (ec *executionContext) fieldContext_Mutation_createLabellingTask(ctx contex
 				return ec.fieldContext_LabellingTask_title(ctx, field)
 			case "description":
 				return ec.fieldContext_LabellingTask_description(ctx, field)
+			case "qualificationRequired":
+				return ec.fieldContext_LabellingTask_qualificationRequired(ctx, field)
+			case "callbackURL":
+				return ec.fieldContext_LabellingTask_callbackURL(ctx, field)
 			case "responses":
 				return ec.fieldContext_LabellingTask_responses(ctx, field)
 			case "expertRequirements":
@@ -1764,9 +1874,9 @@ func (ec *executionContext) _Qualification_value(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(schema.QualificationValue)
+	res := resTmp.(enums.QualificationValue)
 	fc.Result = res
-	return ec.marshalNQualificationQualificationValue2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚋschemaᚐQualificationValue(ctx, field.Selections, res)
+	return ec.marshalNQualificationQualificationValue2githubᚗcomᚋcarlosruizgᚋmuniᚋenumsᚐQualificationValue(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Qualification_value(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1824,6 +1934,10 @@ func (ec *executionContext) fieldContext_Qualification_tasks(ctx context.Context
 				return ec.fieldContext_LabellingTask_title(ctx, field)
 			case "description":
 				return ec.fieldContext_LabellingTask_description(ctx, field)
+			case "qualificationRequired":
+				return ec.fieldContext_LabellingTask_qualificationRequired(ctx, field)
+			case "callbackURL":
+				return ec.fieldContext_LabellingTask_callbackURL(ctx, field)
 			case "responses":
 				return ec.fieldContext_LabellingTask_responses(ctx, field)
 			case "expertRequirements":
@@ -2092,6 +2206,10 @@ func (ec *executionContext) fieldContext_Query_labellingTasks(ctx context.Contex
 				return ec.fieldContext_LabellingTask_title(ctx, field)
 			case "description":
 				return ec.fieldContext_LabellingTask_description(ctx, field)
+			case "qualificationRequired":
+				return ec.fieldContext_LabellingTask_qualificationRequired(ctx, field)
+			case "callbackURL":
+				return ec.fieldContext_LabellingTask_callbackURL(ctx, field)
 			case "responses":
 				return ec.fieldContext_LabellingTask_responses(ctx, field)
 			case "expertRequirements":
@@ -4113,7 +4231,7 @@ func (ec *executionContext) unmarshalInputCreateLabellingTaskInput(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"title", "description", "responseIDs", "expertRequirementIDs"}
+	fieldsInOrder := [...]string{"title", "description", "qualificationRequired", "callbackURL", "responseIDs", "expertRequirementIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -4138,6 +4256,24 @@ func (ec *executionContext) unmarshalInputCreateLabellingTaskInput(ctx context.C
 				return it, err
 			}
 			it.Description = data
+		case "qualificationRequired":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("qualificationRequired"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.QualificationRequired = data
+		case "callbackURL":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("callbackURL"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CallbackURL = data
 		case "responseIDs":
 			var err error
 
@@ -4286,6 +4422,134 @@ func (ec *executionContext) unmarshalInputUpdateExpertInput(ctx context.Context,
 				return it, err
 			}
 			it.ClearQualifications = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateLabellingTaskInput(ctx context.Context, obj interface{}) (ent.UpdateLabellingTaskInput, error) {
+	var it ent.UpdateLabellingTaskInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"title", "description", "clearDescription", "qualificationRequired", "callbackURL", "clearCallbackURL", "addResponseIDs", "removeResponseIDs", "clearResponses", "addExpertRequirementIDs", "removeExpertRequirementIDs", "clearExpertRequirements"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "title":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Title = data
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "clearDescription":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearDescription"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearDescription = data
+		case "qualificationRequired":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("qualificationRequired"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.QualificationRequired = data
+		case "callbackURL":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("callbackURL"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CallbackURL = data
+		case "clearCallbackURL":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearCallbackURL"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearCallbackURL = data
+		case "addResponseIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addResponseIDs"))
+			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AddResponseIDs = data
+		case "removeResponseIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeResponseIDs"))
+			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RemoveResponseIDs = data
+		case "clearResponses":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearResponses"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearResponses = data
+		case "addExpertRequirementIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addExpertRequirementIDs"))
+			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AddExpertRequirementIDs = data
+		case "removeExpertRequirementIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeExpertRequirementIDs"))
+			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RemoveExpertRequirementIDs = data
+		case "clearExpertRequirements":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearExpertRequirements"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearExpertRequirements = data
 		}
 	}
 
@@ -4462,6 +4726,13 @@ func (ec *executionContext) _LabellingTask(ctx context.Context, sel ast.Selectio
 			}
 		case "description":
 			out.Values[i] = ec._LabellingTask_description(ctx, field, obj)
+		case "qualificationRequired":
+			out.Values[i] = ec._LabellingTask_qualificationRequired(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "callbackURL":
+			out.Values[i] = ec._LabellingTask_callbackURL(ctx, field, obj)
 		case "responses":
 			field := field
 
@@ -5671,13 +5942,13 @@ func (ec *executionContext) marshalNQualification2ᚖgithubᚗcomᚋcarlosruizg�
 	return ec._Qualification(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNQualificationQualificationValue2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚋschemaᚐQualificationValue(ctx context.Context, v interface{}) (schema.QualificationValue, error) {
-	var res schema.QualificationValue
+func (ec *executionContext) unmarshalNQualificationQualificationValue2githubᚗcomᚋcarlosruizgᚋmuniᚋenumsᚐQualificationValue(ctx context.Context, v interface{}) (enums.QualificationValue, error) {
+	var res enums.QualificationValue
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNQualificationQualificationValue2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚋschemaᚐQualificationValue(ctx context.Context, sel ast.SelectionSet, v schema.QualificationValue) graphql.Marshaler {
+func (ec *executionContext) marshalNQualificationQualificationValue2githubᚗcomᚋcarlosruizgᚋmuniᚋenumsᚐQualificationValue(ctx context.Context, sel ast.SelectionSet, v enums.QualificationValue) graphql.Marshaler {
 	return v
 }
 

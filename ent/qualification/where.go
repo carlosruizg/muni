@@ -6,7 +6,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/carlosruizg/muni/ent/predicate"
-	"github.com/carlosruizg/muni/ent/schema"
+	"github.com/carlosruizg/muni/enums"
 )
 
 // ID filters vertices based on their ID field.
@@ -55,19 +55,19 @@ func IDLTE(id int) predicate.Qualification {
 }
 
 // ValueEQ applies the EQ predicate on the "value" field.
-func ValueEQ(v schema.QualificationValue) predicate.Qualification {
+func ValueEQ(v enums.QualificationValue) predicate.Qualification {
 	vc := v
 	return predicate.Qualification(sql.FieldEQ(FieldValue, vc))
 }
 
 // ValueNEQ applies the NEQ predicate on the "value" field.
-func ValueNEQ(v schema.QualificationValue) predicate.Qualification {
+func ValueNEQ(v enums.QualificationValue) predicate.Qualification {
 	vc := v
 	return predicate.Qualification(sql.FieldNEQ(FieldValue, vc))
 }
 
 // ValueIn applies the In predicate on the "value" field.
-func ValueIn(vs ...schema.QualificationValue) predicate.Qualification {
+func ValueIn(vs ...enums.QualificationValue) predicate.Qualification {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -76,7 +76,7 @@ func ValueIn(vs ...schema.QualificationValue) predicate.Qualification {
 }
 
 // ValueNotIn applies the NotIn predicate on the "value" field.
-func ValueNotIn(vs ...schema.QualificationValue) predicate.Qualification {
+func ValueNotIn(vs ...enums.QualificationValue) predicate.Qualification {
 	v := make([]any, len(vs))
 	for i := range v {
 		v[i] = vs[i]

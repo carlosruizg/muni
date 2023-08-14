@@ -20,6 +20,10 @@ type LabellingTask struct {
 	Title string `json:"title,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// QualificationRequired holds the value of the "qualification_required" field.
+	QualificationRequired bool `json:"qualification_required,omitempty"`
+	// CallbackURL holds the value of the "callback_url" field.
+	CallbackURL string `json:"callback_url,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LabellingTaskQuery when eager-loading is set.
 	Edges        LabellingTaskEdges `json:"edges"`
@@ -65,9 +69,11 @@ func (*LabellingTask) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case labellingtask.FieldQualificationRequired:
+			values[i] = new(sql.NullBool)
 		case labellingtask.FieldID:
 			values[i] = new(sql.NullInt64)
-		case labellingtask.FieldTitle, labellingtask.FieldDescription:
+		case labellingtask.FieldTitle, labellingtask.FieldDescription, labellingtask.FieldCallbackURL:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -101,6 +107,18 @@ func (lt *LabellingTask) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				lt.Description = value.String
+			}
+		case labellingtask.FieldQualificationRequired:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field qualification_required", values[i])
+			} else if value.Valid {
+				lt.QualificationRequired = value.Bool
+			}
+		case labellingtask.FieldCallbackURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field callback_url", values[i])
+			} else if value.Valid {
+				lt.CallbackURL = value.String
 			}
 		default:
 			lt.selectValues.Set(columns[i], values[i])
@@ -153,6 +171,12 @@ func (lt *LabellingTask) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(lt.Description)
+	builder.WriteString(", ")
+	builder.WriteString("qualification_required=")
+	builder.WriteString(fmt.Sprintf("%v", lt.QualificationRequired))
+	builder.WriteString(", ")
+	builder.WriteString("callback_url=")
+	builder.WriteString(lt.CallbackURL)
 	builder.WriteByte(')')
 	return builder.String()
 }

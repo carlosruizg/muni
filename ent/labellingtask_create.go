@@ -41,6 +41,26 @@ func (ltc *LabellingTaskCreate) SetNillableDescription(s *string) *LabellingTask
 	return ltc
 }
 
+// SetQualificationRequired sets the "qualification_required" field.
+func (ltc *LabellingTaskCreate) SetQualificationRequired(b bool) *LabellingTaskCreate {
+	ltc.mutation.SetQualificationRequired(b)
+	return ltc
+}
+
+// SetCallbackURL sets the "callback_url" field.
+func (ltc *LabellingTaskCreate) SetCallbackURL(s string) *LabellingTaskCreate {
+	ltc.mutation.SetCallbackURL(s)
+	return ltc
+}
+
+// SetNillableCallbackURL sets the "callback_url" field if the given value is not nil.
+func (ltc *LabellingTaskCreate) SetNillableCallbackURL(s *string) *LabellingTaskCreate {
+	if s != nil {
+		ltc.SetCallbackURL(*s)
+	}
+	return ltc
+}
+
 // AddResponseIDs adds the "responses" edge to the LabellingTaskResponse entity by IDs.
 func (ltc *LabellingTaskCreate) AddResponseIDs(ids ...int) *LabellingTaskCreate {
 	ltc.mutation.AddResponseIDs(ids...)
@@ -113,6 +133,9 @@ func (ltc *LabellingTaskCreate) check() error {
 			return &ValidationError{Name: "title", err: fmt.Errorf(`ent: validator failed for field "LabellingTask.title": %w`, err)}
 		}
 	}
+	if _, ok := ltc.mutation.QualificationRequired(); !ok {
+		return &ValidationError{Name: "qualification_required", err: errors.New(`ent: missing required field "LabellingTask.qualification_required"`)}
+	}
 	return nil
 }
 
@@ -146,6 +169,14 @@ func (ltc *LabellingTaskCreate) createSpec() (*LabellingTask, *sqlgraph.CreateSp
 	if value, ok := ltc.mutation.Description(); ok {
 		_spec.SetField(labellingtask.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if value, ok := ltc.mutation.QualificationRequired(); ok {
+		_spec.SetField(labellingtask.FieldQualificationRequired, field.TypeBool, value)
+		_node.QualificationRequired = value
+	}
+	if value, ok := ltc.mutation.CallbackURL(); ok {
+		_spec.SetField(labellingtask.FieldCallbackURL, field.TypeString, value)
+		_node.CallbackURL = value
 	}
 	if nodes := ltc.mutation.ResponsesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

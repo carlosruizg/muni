@@ -8,7 +8,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/carlosruizg/muni/ent/schema"
+	"github.com/carlosruizg/muni/enums"
 )
 
 const (
@@ -62,7 +62,7 @@ func ValidColumn(column string) bool {
 }
 
 // ValueValidator is a validator for the "value" field enum values. It is called by the builders before save.
-func ValueValidator(v schema.QualificationValue) error {
+func ValueValidator(v enums.QualificationValue) error {
 	switch v {
 	case "CODER", "MEDICAL", "ARTIST", "STEM":
 		return nil
@@ -127,8 +127,8 @@ func newExpertsStep() *sqlgraph.Step {
 }
 
 var (
-	// schema.QualificationValue must implement graphql.Marshaler.
-	_ graphql.Marshaler = (*schema.QualificationValue)(nil)
-	// schema.QualificationValue must implement graphql.Unmarshaler.
-	_ graphql.Unmarshaler = (*schema.QualificationValue)(nil)
+	// enums.QualificationValue must implement graphql.Marshaler.
+	_ graphql.Marshaler = (*enums.QualificationValue)(nil)
+	// enums.QualificationValue must implement graphql.Unmarshaler.
+	_ graphql.Unmarshaler = (*enums.QualificationValue)(nil)
 )

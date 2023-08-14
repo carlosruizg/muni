@@ -14,7 +14,7 @@ import (
 	"github.com/carlosruizg/muni/ent/labellingtask"
 	"github.com/carlosruizg/muni/ent/predicate"
 	"github.com/carlosruizg/muni/ent/qualification"
-	"github.com/carlosruizg/muni/ent/schema"
+	"github.com/carlosruizg/muni/enums"
 )
 
 // QualificationUpdate is the builder for updating Qualification entities.
@@ -31,8 +31,8 @@ func (qu *QualificationUpdate) Where(ps ...predicate.Qualification) *Qualificati
 }
 
 // SetValue sets the "value" field.
-func (qu *QualificationUpdate) SetValue(sv schema.QualificationValue) *QualificationUpdate {
-	qu.mutation.SetValue(sv)
+func (qu *QualificationUpdate) SetValue(ev enums.QualificationValue) *QualificationUpdate {
+	qu.mutation.SetValue(ev)
 	return qu
 }
 
@@ -276,8 +276,8 @@ type QualificationUpdateOne struct {
 }
 
 // SetValue sets the "value" field.
-func (quo *QualificationUpdateOne) SetValue(sv schema.QualificationValue) *QualificationUpdateOne {
-	quo.mutation.SetValue(sv)
+func (quo *QualificationUpdateOne) SetValue(ev enums.QualificationValue) *QualificationUpdateOne {
+	quo.mutation.SetValue(ev)
 	return quo
 }
 

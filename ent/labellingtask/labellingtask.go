@@ -16,6 +16,10 @@ const (
 	FieldTitle = "title"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldQualificationRequired holds the string denoting the qualification_required field in the database.
+	FieldQualificationRequired = "qualification_required"
+	// FieldCallbackURL holds the string denoting the callback_url field in the database.
+	FieldCallbackURL = "callback_url"
 	// EdgeResponses holds the string denoting the responses edge name in mutations.
 	EdgeResponses = "responses"
 	// EdgeExpertRequirements holds the string denoting the expert_requirements edge name in mutations.
@@ -41,6 +45,8 @@ var Columns = []string{
 	FieldID,
 	FieldTitle,
 	FieldDescription,
+	FieldQualificationRequired,
+	FieldCallbackURL,
 }
 
 var (
@@ -80,6 +86,16 @@ func ByTitle(opts ...sql.OrderTermOption) OrderOption {
 // ByDescription orders the results by the description field.
 func ByDescription(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByQualificationRequired orders the results by the qualification_required field.
+func ByQualificationRequired(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldQualificationRequired, opts...).ToFunc()
+}
+
+// ByCallbackURL orders the results by the callback_url field.
+func ByCallbackURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCallbackURL, opts...).ToFunc()
 }
 
 // ByResponsesCount orders the results by responses count.

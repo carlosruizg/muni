@@ -18,6 +18,8 @@ func (LabellingTask) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("title").NotEmpty(),
 		field.String("description").Optional(),
+		field.Bool("qualification_required"),
+		field.String("callback_url").Optional(),
 	}
 }
 
@@ -26,12 +28,13 @@ func (LabellingTask) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("responses", LabellingTaskResponse.Type),
 		edge.To("expert_requirements", Qualification.Type),
+		edge.To("questions", Question.Type),
 	}
 }
 
 func (LabellingTask) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.QueryField(),
-		entgql.Mutations(entgql.MutationCreate()),
+		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 	}
 }

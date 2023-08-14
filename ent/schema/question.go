@@ -1,0 +1,38 @@
+package schema
+
+import (
+	"entgo.io/contrib/entgql"
+	"entgo.io/ent"
+	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
+	"github.com/carlosruizg/muni/enums"
+)
+
+// Question holds the schema definition for the Question entity.
+type Question struct {
+	ent.Schema
+}
+
+// Fields of the Question.
+func (Question) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("text"),
+		field.String("description").Optional(),
+		field.Enum("question_type").GoType(enums.QuestionType("")),
+	}
+}
+
+// Edges of the Question.
+func (Question) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("task", LabellingTask.Type).Ref("questions").Unique(),
+	}
+}
+
+func (Question) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(entgql.MutationCreate()),
+	}
+}
