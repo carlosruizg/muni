@@ -77,6 +77,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		CreateProject func(childComplexity int, input ent.CreateLabellingProjectInput) int
+		UpdateProject func(childComplexity int, id int, input ent.UpdateLabellingProjectInput) int
 	}
 
 	PageInfo struct {
@@ -100,6 +101,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateProject(ctx context.Context, input ent.CreateLabellingProjectInput) (*ent.LabellingProject, error)
+	UpdateProject(ctx context.Context, id int, input ent.UpdateLabellingProjectInput) (*ent.LabellingProject, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id int) (ent.Noder, error)
@@ -239,6 +241,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateProject(childComplexity, args["input"].(ent.CreateLabellingProjectInput)), true
 
+	case "Mutation.updateProject":
+		if e.complexity.Mutation.UpdateProject == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateProject_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateProject(childComplexity, args["id"].(int), args["input"].(ent.UpdateLabellingProjectInput)), true
+
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -321,6 +335,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreateLabellingProjectInput,
+		ec.unmarshalInputUpdateLabellingProjectInput,
 	)
 	first := true
 
@@ -450,6 +465,30 @@ func (ec *executionContext) field_Mutation_createProject_args(ctx context.Contex
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 ent.UpdateLabellingProjectInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateLabellingProjectInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐUpdateLabellingProjectInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -1208,11 +1247,14 @@ func (ec *executionContext) _Mutation_createProject(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*ent.LabellingProject)
 	fc.Result = res
-	return ec.marshalOLabellingProject2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingProject(ctx, field.Selections, res)
+	return ec.marshalNLabellingProject2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingProject(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createProject(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1249,6 +1291,77 @@ func (ec *executionContext) fieldContext_Mutation_createProject(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createProject_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateProject(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateProject(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateProject(rctx, fc.Args["id"].(int), fc.Args["input"].(ent.UpdateLabellingProjectInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.LabellingProject)
+	fc.Result = res
+	return ec.marshalNLabellingProject2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingProject(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateProject(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_LabellingProject_id(ctx, field)
+			case "name":
+				return ec.fieldContext_LabellingProject_name(ctx, field)
+			case "status":
+				return ec.fieldContext_LabellingProject_status(ctx, field)
+			case "description":
+				return ec.fieldContext_LabellingProject_description(ctx, field)
+			case "isPrivate":
+				return ec.fieldContext_LabellingProject_isPrivate(ctx, field)
+			case "callbackURL":
+				return ec.fieldContext_LabellingProject_callbackURL(ctx, field)
+			case "workersPerTask":
+				return ec.fieldContext_LabellingProject_workersPerTask(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LabellingProject", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateProject_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3656,6 +3769,98 @@ func (ec *executionContext) unmarshalInputCreateLabellingProjectInput(ctx contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateLabellingProjectInput(ctx context.Context, obj interface{}) (ent.UpdateLabellingProjectInput, error) {
+	var it ent.UpdateLabellingProjectInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "status", "description", "clearDescription", "isPrivate", "callbackURL", "clearCallbackURL", "workersPerTask"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			data, err := ec.unmarshalOLabellingProjectStatus2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚋlabellingprojectᚐStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Status = data
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "clearDescription":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearDescription"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearDescription = data
+		case "isPrivate":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isPrivate"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsPrivate = data
+		case "callbackURL":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("callbackURL"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CallbackURL = data
+		case "clearCallbackURL":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearCallbackURL"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearCallbackURL = data
+		case "workersPerTask":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workersPerTask"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.WorkersPerTask = data
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -3923,6 +4128,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createProject(ctx, field)
 			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateProject":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateProject(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4559,6 +4774,10 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
+func (ec *executionContext) marshalNLabellingProject2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingProject(ctx context.Context, sel ast.SelectionSet, v ent.LabellingProject) graphql.Marshaler {
+	return ec._LabellingProject(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNLabellingProject2ᚕᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingProjectᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.LabellingProject) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -4684,6 +4903,11 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNUpdateLabellingProjectInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐUpdateLabellingProjectInput(ctx context.Context, v interface{}) (ent.UpdateLabellingProjectInput, error) {
+	res, err := ec.unmarshalInputUpdateLabellingProjectInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -4995,13 +5219,6 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
-}
-
-func (ec *executionContext) marshalOLabellingProject2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingProject(ctx context.Context, sel ast.SelectionSet, v *ent.LabellingProject) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._LabellingProject(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOLabellingProjectStatus2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚋlabellingprojectᚐStatus(ctx context.Context, v interface{}) (*labellingproject.Status, error) {

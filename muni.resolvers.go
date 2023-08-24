@@ -15,6 +15,11 @@ func (r *mutationResolver) CreateProject(ctx context.Context, input ent.CreateLa
 	return r.client.LabellingProject.Create().SetInput(input).Save(ctx)
 }
 
+// UpdateProject is the resolver for the updateProject field.
+func (r *mutationResolver) UpdateProject(ctx context.Context, id int, input ent.UpdateLabellingProjectInput) (*ent.LabellingProject, error) {
+	return r.client.LabellingProject.UpdateOneID(id).SetInput(input).Save(ctx)
+}
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 

@@ -41,3 +41,55 @@ func (c *LabellingProjectCreate) SetInput(i CreateLabellingProjectInput) *Labell
 	i.Mutate(c.Mutation())
 	return c
 }
+
+// UpdateLabellingProjectInput represents a mutation input for updating labellingprojects.
+type UpdateLabellingProjectInput struct {
+	Name             *string
+	Status           *labellingproject.Status
+	ClearDescription bool
+	Description      *string
+	IsPrivate        *bool
+	ClearCallbackURL bool
+	CallbackURL      *string
+	WorkersPerTask   *int
+}
+
+// Mutate applies the UpdateLabellingProjectInput on the LabellingProjectMutation builder.
+func (i *UpdateLabellingProjectInput) Mutate(m *LabellingProjectMutation) {
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
+	}
+	if i.ClearDescription {
+		m.ClearDescription()
+	}
+	if v := i.Description; v != nil {
+		m.SetDescription(*v)
+	}
+	if v := i.IsPrivate; v != nil {
+		m.SetIsPrivate(*v)
+	}
+	if i.ClearCallbackURL {
+		m.ClearCallbackURL()
+	}
+	if v := i.CallbackURL; v != nil {
+		m.SetCallbackURL(*v)
+	}
+	if v := i.WorkersPerTask; v != nil {
+		m.SetWorkersPerTask(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateLabellingProjectInput on the LabellingProjectUpdate builder.
+func (c *LabellingProjectUpdate) SetInput(i UpdateLabellingProjectInput) *LabellingProjectUpdate {
+	i.Mutate(c.Mutation())
+	return c
+}
+
+// SetInput applies the change-set in the UpdateLabellingProjectInput on the LabellingProjectUpdateOne builder.
+func (c *LabellingProjectUpdateOne) SetInput(i UpdateLabellingProjectInput) *LabellingProjectUpdateOne {
+	i.Mutate(c.Mutation())
+	return c
+}
