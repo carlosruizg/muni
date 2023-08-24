@@ -53,3 +53,34 @@ Validate companies are interested in labelling/verification done by experts.
 
 - [x] some
 
+
+
+
+Entities
+
+- Project
+- Question
+    - Multiple Choice
+    - Free Response
+    - Text Tagging
+    - Chatbot
+    - Ranking
+- Response
+- Expert
+- Qualification
+
+TODO:
+
+- Project
+    - Create, Read 1, List, Update
+- Question
+    - Multiple Choice
+    - Single Choice
+    - Free Response
+    - Text Tagging
+    - Chatbot
+    - Ranking
+- Expert
+    - Create, Update
+- Response
+    - Create

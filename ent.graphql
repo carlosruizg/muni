@@ -17,6 +17,10 @@ Define a Relay Cursor type:
 https://relay.dev/graphql/connections.htm#sec-Cursor
 """
 scalar Cursor
+type Expert implements Node {
+  id: ID!
+  name: String!
+}
 type LabellingProject implements Node {
   id: ID!
   name: String!
@@ -32,6 +36,16 @@ enum LabellingProjectStatus @goModel(model: "github.com/carlosruizg/muni/ent/lab
   running
   cancelled
   completed
+}
+type LabellingTask implements Node {
+  id: ID!
+  name: String!
+  description: String
+  instructions: String!
+}
+type LabellingTaskResponse implements Node {
+  id: ID!
+  response: String!
 }
 """
 An object with an ID.
@@ -61,6 +75,17 @@ type PageInfo {
   startCursor: Cursor
   """When paginating forwards, the cursor to continue."""
   endCursor: Cursor
+}
+type Qualification implements Node {
+  id: ID!
+  value: QualificationQualificationValue!
+}
+"""QualificationQualificationValue is enum for the field value"""
+enum QualificationQualificationValue @goModel(model: "github.com/carlosruizg/muni/enums.QualificationValue") {
+  CODER
+  MEDICAL
+  ARTIST
+  STEM
 }
 type Query {
   """Fetches an object given its ID."""

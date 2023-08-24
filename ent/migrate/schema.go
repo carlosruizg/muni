@@ -8,6 +8,17 @@ import (
 )
 
 var (
+	// ExpertsColumns holds the columns for the "experts" table.
+	ExpertsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+	}
+	// ExpertsTable holds the schema information for the "experts" table.
+	ExpertsTable = &schema.Table{
+		Name:       "experts",
+		Columns:    ExpertsColumns,
+		PrimaryKey: []*schema.Column{ExpertsColumns[0]},
+	}
 	// LabellingProjectsColumns holds the columns for the "labelling_projects" table.
 	LabellingProjectsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -24,9 +35,48 @@ var (
 		Columns:    LabellingProjectsColumns,
 		PrimaryKey: []*schema.Column{LabellingProjectsColumns[0]},
 	}
+	// LabellingTasksColumns holds the columns for the "labelling_tasks" table.
+	LabellingTasksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "instructions", Type: field.TypeString},
+	}
+	// LabellingTasksTable holds the schema information for the "labelling_tasks" table.
+	LabellingTasksTable = &schema.Table{
+		Name:       "labelling_tasks",
+		Columns:    LabellingTasksColumns,
+		PrimaryKey: []*schema.Column{LabellingTasksColumns[0]},
+	}
+	// LabellingTaskResponsesColumns holds the columns for the "labelling_task_responses" table.
+	LabellingTaskResponsesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "response", Type: field.TypeString},
+	}
+	// LabellingTaskResponsesTable holds the schema information for the "labelling_task_responses" table.
+	LabellingTaskResponsesTable = &schema.Table{
+		Name:       "labelling_task_responses",
+		Columns:    LabellingTaskResponsesColumns,
+		PrimaryKey: []*schema.Column{LabellingTaskResponsesColumns[0]},
+	}
+	// QualificationsColumns holds the columns for the "qualifications" table.
+	QualificationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "value", Type: field.TypeEnum, Enums: []string{"CODER", "MEDICAL", "ARTIST", "STEM"}},
+	}
+	// QualificationsTable holds the schema information for the "qualifications" table.
+	QualificationsTable = &schema.Table{
+		Name:       "qualifications",
+		Columns:    QualificationsColumns,
+		PrimaryKey: []*schema.Column{QualificationsColumns[0]},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		ExpertsTable,
 		LabellingProjectsTable,
+		LabellingTasksTable,
+		LabellingTaskResponsesTable,
+		QualificationsTable,
 	}
 )
 
