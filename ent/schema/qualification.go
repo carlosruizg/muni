@@ -1,7 +1,9 @@
 package schema
 
 import (
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 	"github.com/carlosruizg/muni/enums"
 )
@@ -21,4 +23,11 @@ func (Qualification) Fields() []ent.Field {
 // Edges of the Qualification.
 func (Qualification) Edges() []ent.Edge {
 	return nil
+}
+
+func (Qualification) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
+	}
 }

@@ -1,7 +1,9 @@
 package schema
 
 import (
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 )
 
@@ -20,4 +22,11 @@ func (LabellingTaskResponse) Fields() []ent.Field {
 // Edges of the LabellingTaskResponse.
 func (LabellingTaskResponse) Edges() []ent.Edge {
 	return nil
+}
+
+func (LabellingTaskResponse) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
+	}
 }

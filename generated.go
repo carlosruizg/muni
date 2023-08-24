@@ -76,8 +76,16 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateProject func(childComplexity int, input ent.CreateLabellingProjectInput) int
-		UpdateProject func(childComplexity int, id int, input ent.UpdateLabellingProjectInput) int
+		CreateExpert                func(childComplexity int, input ent.CreateExpertInput) int
+		CreateLabellingTask         func(childComplexity int, input ent.CreateLabellingTaskInput) int
+		CreateLabellingTaskResponse func(childComplexity int, input ent.CreateLabellingTaskResponseInput) int
+		CreateProject               func(childComplexity int, input ent.CreateLabellingProjectInput) int
+		CreateQualification         func(childComplexity int, input ent.CreateQualificationInput) int
+		UpdateExpert                func(childComplexity int, id int, input ent.UpdateExpertInput) int
+		UpdateLabellingTask         func(childComplexity int, id int, input ent.UpdateLabellingTaskInput) int
+		UpdateLabellingTaskResponse func(childComplexity int, id int, input ent.UpdateLabellingTaskResponseInput) int
+		UpdateProject               func(childComplexity int, id int, input ent.UpdateLabellingProjectInput) int
+		UpdateQualification         func(childComplexity int, id int, input ent.UpdateQualificationInput) int
 	}
 
 	PageInfo struct {
@@ -93,20 +101,36 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		LabellingProjects func(childComplexity int) int
-		Node              func(childComplexity int, id int) int
-		Nodes             func(childComplexity int, ids []int) int
+		Experts                func(childComplexity int) int
+		LabellingProjects      func(childComplexity int) int
+		LabellingTaskResponses func(childComplexity int) int
+		LabellingTasks         func(childComplexity int) int
+		Node                   func(childComplexity int, id int) int
+		Nodes                  func(childComplexity int, ids []int) int
+		Qualifications         func(childComplexity int) int
 	}
 }
 
 type MutationResolver interface {
 	CreateProject(ctx context.Context, input ent.CreateLabellingProjectInput) (*ent.LabellingProject, error)
 	UpdateProject(ctx context.Context, id int, input ent.UpdateLabellingProjectInput) (*ent.LabellingProject, error)
+	CreateExpert(ctx context.Context, input ent.CreateExpertInput) (*ent.Expert, error)
+	UpdateExpert(ctx context.Context, id int, input ent.UpdateExpertInput) (*ent.Expert, error)
+	CreateLabellingTask(ctx context.Context, input ent.CreateLabellingTaskInput) (*ent.LabellingTask, error)
+	UpdateLabellingTask(ctx context.Context, id int, input ent.UpdateLabellingTaskInput) (*ent.LabellingTask, error)
+	CreateLabellingTaskResponse(ctx context.Context, input ent.CreateLabellingTaskResponseInput) (*ent.LabellingTaskResponse, error)
+	UpdateLabellingTaskResponse(ctx context.Context, id int, input ent.UpdateLabellingTaskResponseInput) (*ent.LabellingTaskResponse, error)
+	CreateQualification(ctx context.Context, input ent.CreateQualificationInput) (*ent.LabellingTaskResponse, error)
+	UpdateQualification(ctx context.Context, id int, input ent.UpdateQualificationInput) (*ent.LabellingTaskResponse, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id int) (ent.Noder, error)
 	Nodes(ctx context.Context, ids []int) ([]ent.Noder, error)
+	Experts(ctx context.Context) ([]*ent.Expert, error)
 	LabellingProjects(ctx context.Context) ([]*ent.LabellingProject, error)
+	LabellingTasks(ctx context.Context) ([]*ent.LabellingTask, error)
+	LabellingTaskResponses(ctx context.Context) ([]*ent.LabellingTaskResponse, error)
+	Qualifications(ctx context.Context) ([]*ent.Qualification, error)
 }
 
 type executableSchema struct {
@@ -229,6 +253,42 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LabellingTaskResponse.Response(childComplexity), true
 
+	case "Mutation.createExpert":
+		if e.complexity.Mutation.CreateExpert == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createExpert_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateExpert(childComplexity, args["input"].(ent.CreateExpertInput)), true
+
+	case "Mutation.createLabellingTask":
+		if e.complexity.Mutation.CreateLabellingTask == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createLabellingTask_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateLabellingTask(childComplexity, args["input"].(ent.CreateLabellingTaskInput)), true
+
+	case "Mutation.createLabellingTaskResponse":
+		if e.complexity.Mutation.CreateLabellingTaskResponse == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createLabellingTaskResponse_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateLabellingTaskResponse(childComplexity, args["input"].(ent.CreateLabellingTaskResponseInput)), true
+
 	case "Mutation.createProject":
 		if e.complexity.Mutation.CreateProject == nil {
 			break
@@ -241,6 +301,54 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateProject(childComplexity, args["input"].(ent.CreateLabellingProjectInput)), true
 
+	case "Mutation.createQualification":
+		if e.complexity.Mutation.CreateQualification == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createQualification_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateQualification(childComplexity, args["input"].(ent.CreateQualificationInput)), true
+
+	case "Mutation.updateExpert":
+		if e.complexity.Mutation.UpdateExpert == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateExpert_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateExpert(childComplexity, args["id"].(int), args["input"].(ent.UpdateExpertInput)), true
+
+	case "Mutation.updateLabellingTask":
+		if e.complexity.Mutation.UpdateLabellingTask == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateLabellingTask_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateLabellingTask(childComplexity, args["id"].(int), args["input"].(ent.UpdateLabellingTaskInput)), true
+
+	case "Mutation.updateLabellingTaskResponse":
+		if e.complexity.Mutation.UpdateLabellingTaskResponse == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateLabellingTaskResponse_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateLabellingTaskResponse(childComplexity, args["id"].(int), args["input"].(ent.UpdateLabellingTaskResponseInput)), true
+
 	case "Mutation.updateProject":
 		if e.complexity.Mutation.UpdateProject == nil {
 			break
@@ -252,6 +360,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateProject(childComplexity, args["id"].(int), args["input"].(ent.UpdateLabellingProjectInput)), true
+
+	case "Mutation.updateQualification":
+		if e.complexity.Mutation.UpdateQualification == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateQualification_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateQualification(childComplexity, args["id"].(int), args["input"].(ent.UpdateQualificationInput)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -295,12 +415,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Qualification.Value(childComplexity), true
 
+	case "Query.experts":
+		if e.complexity.Query.Experts == nil {
+			break
+		}
+
+		return e.complexity.Query.Experts(childComplexity), true
+
 	case "Query.labellingProjects":
 		if e.complexity.Query.LabellingProjects == nil {
 			break
 		}
 
 		return e.complexity.Query.LabellingProjects(childComplexity), true
+
+	case "Query.labellingTaskResponses":
+		if e.complexity.Query.LabellingTaskResponses == nil {
+			break
+		}
+
+		return e.complexity.Query.LabellingTaskResponses(childComplexity), true
+
+	case "Query.labellingTasks":
+		if e.complexity.Query.LabellingTasks == nil {
+			break
+		}
+
+		return e.complexity.Query.LabellingTasks(childComplexity), true
 
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
@@ -326,6 +467,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Nodes(childComplexity, args["ids"].([]int)), true
 
+	case "Query.qualifications":
+		if e.complexity.Query.Qualifications == nil {
+			break
+		}
+
+		return e.complexity.Query.Qualifications(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -334,8 +482,16 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputCreateExpertInput,
 		ec.unmarshalInputCreateLabellingProjectInput,
+		ec.unmarshalInputCreateLabellingTaskInput,
+		ec.unmarshalInputCreateLabellingTaskResponseInput,
+		ec.unmarshalInputCreateQualificationInput,
+		ec.unmarshalInputUpdateExpertInput,
 		ec.unmarshalInputUpdateLabellingProjectInput,
+		ec.unmarshalInputUpdateLabellingTaskInput,
+		ec.unmarshalInputUpdateLabellingTaskResponseInput,
+		ec.unmarshalInputUpdateQualificationInput,
 	)
 	first := true
 
@@ -453,6 +609,51 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Mutation_createExpert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.CreateExpertInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateExpertInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateExpertInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createLabellingTaskResponse_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.CreateLabellingTaskResponseInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateLabellingTaskResponseInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateLabellingTaskResponseInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createLabellingTask_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.CreateLabellingTaskInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateLabellingTaskInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateLabellingTaskInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createProject_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -465,6 +666,93 @@ func (ec *executionContext) field_Mutation_createProject_args(ctx context.Contex
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createQualification_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 ent.CreateQualificationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreateQualificationInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateQualificationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateExpert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 ent.UpdateExpertInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateExpertInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐUpdateExpertInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateLabellingTaskResponse_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 ent.UpdateLabellingTaskResponseInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateLabellingTaskResponseInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐUpdateLabellingTaskResponseInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateLabellingTask_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 ent.UpdateLabellingTaskInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateLabellingTaskInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐUpdateLabellingTaskInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -484,6 +772,30 @@ func (ec *executionContext) field_Mutation_updateProject_args(ctx context.Contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg1, err = ec.unmarshalNUpdateLabellingProjectInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐUpdateLabellingProjectInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateQualification_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 ent.UpdateQualificationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateQualificationInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐUpdateQualificationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1368,6 +1680,502 @@ func (ec *executionContext) fieldContext_Mutation_updateProject(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createExpert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createExpert(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateExpert(rctx, fc.Args["input"].(ent.CreateExpertInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Expert)
+	fc.Result = res
+	return ec.marshalNExpert2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐExpert(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createExpert(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Expert_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Expert_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Expert", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createExpert_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateExpert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateExpert(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateExpert(rctx, fc.Args["id"].(int), fc.Args["input"].(ent.UpdateExpertInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Expert)
+	fc.Result = res
+	return ec.marshalNExpert2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐExpert(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateExpert(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Expert_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Expert_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Expert", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateExpert_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createLabellingTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createLabellingTask(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateLabellingTask(rctx, fc.Args["input"].(ent.CreateLabellingTaskInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.LabellingTask)
+	fc.Result = res
+	return ec.marshalNLabellingTask2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTask(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createLabellingTask(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_LabellingTask_id(ctx, field)
+			case "name":
+				return ec.fieldContext_LabellingTask_name(ctx, field)
+			case "description":
+				return ec.fieldContext_LabellingTask_description(ctx, field)
+			case "instructions":
+				return ec.fieldContext_LabellingTask_instructions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LabellingTask", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createLabellingTask_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateLabellingTask(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateLabellingTask(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateLabellingTask(rctx, fc.Args["id"].(int), fc.Args["input"].(ent.UpdateLabellingTaskInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.LabellingTask)
+	fc.Result = res
+	return ec.marshalNLabellingTask2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTask(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateLabellingTask(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_LabellingTask_id(ctx, field)
+			case "name":
+				return ec.fieldContext_LabellingTask_name(ctx, field)
+			case "description":
+				return ec.fieldContext_LabellingTask_description(ctx, field)
+			case "instructions":
+				return ec.fieldContext_LabellingTask_instructions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LabellingTask", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateLabellingTask_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createLabellingTaskResponse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createLabellingTaskResponse(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateLabellingTaskResponse(rctx, fc.Args["input"].(ent.CreateLabellingTaskResponseInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.LabellingTaskResponse)
+	fc.Result = res
+	return ec.marshalNLabellingTaskResponse2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTaskResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createLabellingTaskResponse(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_LabellingTaskResponse_id(ctx, field)
+			case "response":
+				return ec.fieldContext_LabellingTaskResponse_response(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LabellingTaskResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createLabellingTaskResponse_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateLabellingTaskResponse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateLabellingTaskResponse(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateLabellingTaskResponse(rctx, fc.Args["id"].(int), fc.Args["input"].(ent.UpdateLabellingTaskResponseInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.LabellingTaskResponse)
+	fc.Result = res
+	return ec.marshalNLabellingTaskResponse2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTaskResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateLabellingTaskResponse(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_LabellingTaskResponse_id(ctx, field)
+			case "response":
+				return ec.fieldContext_LabellingTaskResponse_response(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LabellingTaskResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateLabellingTaskResponse_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createQualification(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createQualification(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateQualification(rctx, fc.Args["input"].(ent.CreateQualificationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.LabellingTaskResponse)
+	fc.Result = res
+	return ec.marshalNLabellingTaskResponse2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTaskResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createQualification(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_LabellingTaskResponse_id(ctx, field)
+			case "response":
+				return ec.fieldContext_LabellingTaskResponse_response(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LabellingTaskResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createQualification_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateQualification(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateQualification(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateQualification(rctx, fc.Args["id"].(int), fc.Args["input"].(ent.UpdateQualificationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.LabellingTaskResponse)
+	fc.Result = res
+	return ec.marshalNLabellingTaskResponse2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTaskResponse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateQualification(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_LabellingTaskResponse_id(ctx, field)
+			case "response":
+				return ec.fieldContext_LabellingTaskResponse_response(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LabellingTaskResponse", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateQualification_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *entgql.PageInfo[int]) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PageInfo_hasNextPage(ctx, field)
 	if err != nil {
@@ -1733,6 +2541,56 @@ func (ec *executionContext) fieldContext_Query_nodes(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_experts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_experts(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Experts(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Expert)
+	fc.Result = res
+	return ec.marshalNExpert2ᚕᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐExpertᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_experts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Expert_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Expert_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Expert", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_labellingProjects(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_labellingProjects(ctx, field)
 	if err != nil {
@@ -1788,6 +2646,160 @@ func (ec *executionContext) fieldContext_Query_labellingProjects(ctx context.Con
 				return ec.fieldContext_LabellingProject_workersPerTask(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type LabellingProject", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_labellingTasks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_labellingTasks(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().LabellingTasks(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.LabellingTask)
+	fc.Result = res
+	return ec.marshalNLabellingTask2ᚕᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTaskᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_labellingTasks(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_LabellingTask_id(ctx, field)
+			case "name":
+				return ec.fieldContext_LabellingTask_name(ctx, field)
+			case "description":
+				return ec.fieldContext_LabellingTask_description(ctx, field)
+			case "instructions":
+				return ec.fieldContext_LabellingTask_instructions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LabellingTask", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_labellingTaskResponses(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_labellingTaskResponses(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().LabellingTaskResponses(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.LabellingTaskResponse)
+	fc.Result = res
+	return ec.marshalNLabellingTaskResponse2ᚕᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTaskResponseᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_labellingTaskResponses(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_LabellingTaskResponse_id(ctx, field)
+			case "response":
+				return ec.fieldContext_LabellingTaskResponse_response(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type LabellingTaskResponse", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_qualifications(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_qualifications(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Qualifications(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Qualification)
+	fc.Result = res
+	return ec.marshalNQualification2ᚕᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐQualificationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_qualifications(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Qualification_id(ctx, field)
+			case "value":
+				return ec.fieldContext_Qualification_value(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Qualification", field.Name)
 		},
 	}
 	return fc, nil
@@ -3695,6 +4707,35 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCreateExpertInput(ctx context.Context, obj interface{}) (ent.CreateExpertInput, error) {
+	var it ent.CreateExpertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateLabellingProjectInput(ctx context.Context, obj interface{}) (ent.CreateLabellingProjectInput, error) {
 	var it ent.CreateLabellingProjectInput
 	asMap := map[string]interface{}{}
@@ -3763,6 +4804,140 @@ func (ec *executionContext) unmarshalInputCreateLabellingProjectInput(ctx contex
 				return it, err
 			}
 			it.WorkersPerTask = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateLabellingTaskInput(ctx context.Context, obj interface{}) (ent.CreateLabellingTaskInput, error) {
+	var it ent.CreateLabellingTaskInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description", "instructions"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "instructions":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("instructions"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Instructions = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateLabellingTaskResponseInput(ctx context.Context, obj interface{}) (ent.CreateLabellingTaskResponseInput, error) {
+	var it ent.CreateLabellingTaskResponseInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"response"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "response":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("response"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Response = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateQualificationInput(ctx context.Context, obj interface{}) (ent.CreateQualificationInput, error) {
+	var it ent.CreateQualificationInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalNQualificationQualificationValue2githubᚗcomᚋcarlosruizgᚋmuniᚋenumsᚐQualificationValue(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateExpertInput(ctx context.Context, obj interface{}) (ent.UpdateExpertInput, error) {
+	var it ent.UpdateExpertInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
 		}
 	}
 
@@ -3855,6 +5030,120 @@ func (ec *executionContext) unmarshalInputUpdateLabellingProjectInput(ctx contex
 				return it, err
 			}
 			it.WorkersPerTask = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateLabellingTaskInput(ctx context.Context, obj interface{}) (ent.UpdateLabellingTaskInput, error) {
+	var it ent.UpdateLabellingTaskInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description", "clearDescription", "instructions"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "clearDescription":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearDescription"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearDescription = data
+		case "instructions":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("instructions"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Instructions = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateLabellingTaskResponseInput(ctx context.Context, obj interface{}) (ent.UpdateLabellingTaskResponseInput, error) {
+	var it ent.UpdateLabellingTaskResponseInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"response"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "response":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("response"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Response = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateQualificationInput(ctx context.Context, obj interface{}) (ent.UpdateQualificationInput, error) {
+	var it ent.UpdateQualificationInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"value"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			data, err := ec.unmarshalOQualificationQualificationValue2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋenumsᚐQualificationValue(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Value = data
 		}
 	}
 
@@ -4138,6 +5427,62 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "createExpert":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createExpert(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateExpert":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateExpert(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createLabellingTask":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createLabellingTask(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateLabellingTask":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateLabellingTask(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createLabellingTaskResponse":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createLabellingTaskResponse(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateLabellingTaskResponse":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateLabellingTaskResponse(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createQualification":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createQualification(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateQualification":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateQualification(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4313,6 +5658,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "experts":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_experts(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "labellingProjects":
 			field := field
 
@@ -4323,6 +5690,72 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_labellingProjects(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "labellingTasks":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_labellingTasks(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "labellingTaskResponses":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_labellingTaskResponses(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "qualifications":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_qualifications(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -4707,9 +6140,87 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCreateExpertInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateExpertInput(ctx context.Context, v interface{}) (ent.CreateExpertInput, error) {
+	res, err := ec.unmarshalInputCreateExpertInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateLabellingProjectInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateLabellingProjectInput(ctx context.Context, v interface{}) (ent.CreateLabellingProjectInput, error) {
 	res, err := ec.unmarshalInputCreateLabellingProjectInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreateLabellingTaskInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateLabellingTaskInput(ctx context.Context, v interface{}) (ent.CreateLabellingTaskInput, error) {
+	res, err := ec.unmarshalInputCreateLabellingTaskInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreateLabellingTaskResponseInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateLabellingTaskResponseInput(ctx context.Context, v interface{}) (ent.CreateLabellingTaskResponseInput, error) {
+	res, err := ec.unmarshalInputCreateLabellingTaskResponseInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreateQualificationInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐCreateQualificationInput(ctx context.Context, v interface{}) (ent.CreateQualificationInput, error) {
+	res, err := ec.unmarshalInputCreateQualificationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNExpert2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐExpert(ctx context.Context, sel ast.SelectionSet, v ent.Expert) graphql.Marshaler {
+	return ec._Expert(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNExpert2ᚕᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐExpertᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Expert) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNExpert2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐExpert(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNExpert2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐExpert(ctx context.Context, sel ast.SelectionSet, v *ent.Expert) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Expert(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
@@ -4842,6 +6353,122 @@ func (ec *executionContext) marshalNLabellingProjectStatus2githubᚗcomᚋcarlos
 	return v
 }
 
+func (ec *executionContext) marshalNLabellingTask2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTask(ctx context.Context, sel ast.SelectionSet, v ent.LabellingTask) graphql.Marshaler {
+	return ec._LabellingTask(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLabellingTask2ᚕᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTaskᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.LabellingTask) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLabellingTask2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTask(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNLabellingTask2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTask(ctx context.Context, sel ast.SelectionSet, v *ent.LabellingTask) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LabellingTask(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNLabellingTaskResponse2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTaskResponse(ctx context.Context, sel ast.SelectionSet, v ent.LabellingTaskResponse) graphql.Marshaler {
+	return ec._LabellingTaskResponse(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLabellingTaskResponse2ᚕᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTaskResponseᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.LabellingTaskResponse) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLabellingTaskResponse2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTaskResponse(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNLabellingTaskResponse2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐLabellingTaskResponse(ctx context.Context, sel ast.SelectionSet, v *ent.LabellingTaskResponse) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._LabellingTaskResponse(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNNode2ᚕgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v []ent.Noder) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -4880,6 +6507,60 @@ func (ec *executionContext) marshalNNode2ᚕgithubᚗcomᚋcarlosruizgᚋmuniᚋ
 	return ret
 }
 
+func (ec *executionContext) marshalNQualification2ᚕᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐQualificationᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Qualification) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNQualification2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐQualification(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNQualification2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐQualification(ctx context.Context, sel ast.SelectionSet, v *ent.Qualification) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Qualification(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNQualificationQualificationValue2githubᚗcomᚋcarlosruizgᚋmuniᚋenumsᚐQualificationValue(ctx context.Context, v interface{}) (enums.QualificationValue, error) {
 	var res enums.QualificationValue
 	err := res.UnmarshalGQL(v)
@@ -4905,8 +6586,28 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) unmarshalNUpdateExpertInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐUpdateExpertInput(ctx context.Context, v interface{}) (ent.UpdateExpertInput, error) {
+	res, err := ec.unmarshalInputUpdateExpertInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNUpdateLabellingProjectInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐUpdateLabellingProjectInput(ctx context.Context, v interface{}) (ent.UpdateLabellingProjectInput, error) {
 	res, err := ec.unmarshalInputUpdateLabellingProjectInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateLabellingTaskInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐUpdateLabellingTaskInput(ctx context.Context, v interface{}) (ent.UpdateLabellingTaskInput, error) {
+	res, err := ec.unmarshalInputUpdateLabellingTaskInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateLabellingTaskResponseInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐUpdateLabellingTaskResponseInput(ctx context.Context, v interface{}) (ent.UpdateLabellingTaskResponseInput, error) {
+	res, err := ec.unmarshalInputUpdateLabellingTaskResponseInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateQualificationInput2githubᚗcomᚋcarlosruizgᚋmuniᚋentᚐUpdateQualificationInput(ctx context.Context, v interface{}) (ent.UpdateQualificationInput, error) {
+	res, err := ec.unmarshalInputUpdateQualificationInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -5242,6 +6943,22 @@ func (ec *executionContext) marshalONode2githubᚗcomᚋcarlosruizgᚋmuniᚋent
 		return graphql.Null
 	}
 	return ec._Node(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOQualificationQualificationValue2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋenumsᚐQualificationValue(ctx context.Context, v interface{}) (*enums.QualificationValue, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(enums.QualificationValue)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOQualificationQualificationValue2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋenumsᚐQualificationValue(ctx context.Context, sel ast.SelectionSet, v *enums.QualificationValue) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

@@ -20,9 +20,29 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, erro
 	return r.client.Noders(ctx, ids)
 }
 
+// Experts is the resolver for the experts field.
+func (r *queryResolver) Experts(ctx context.Context) ([]*ent.Expert, error) {
+	return r.client.Expert.Query().All(ctx)
+}
+
 // LabellingProjects is the resolver for the labellingProjects field.
 func (r *queryResolver) LabellingProjects(ctx context.Context) ([]*ent.LabellingProject, error) {
 	return r.client.LabellingProject.Query().All(ctx)
+}
+
+// LabellingTasks is the resolver for the labellingTasks field.
+func (r *queryResolver) LabellingTasks(ctx context.Context) ([]*ent.LabellingTask, error) {
+	return r.client.LabellingTask.Query().All(ctx)
+}
+
+// LabellingTaskResponses is the resolver for the labellingTaskResponses field.
+func (r *queryResolver) LabellingTaskResponses(ctx context.Context) ([]*ent.LabellingTaskResponse, error) {
+	return r.client.LabellingTaskResponse.Query().All(ctx)
+}
+
+// Qualifications is the resolver for the qualifications field.
+func (r *queryResolver) Qualifications(ctx context.Context) ([]*ent.Qualification, error) {
+	return r.client.Qualification.Query().All(ctx)
 }
 
 // Query returns QueryResolver implementation.
