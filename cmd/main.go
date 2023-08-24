@@ -40,7 +40,7 @@ func main() {
 	// Configure the server and start listening on :8081.
 	srv := handler.NewDefaultServer(muni.NewSchema(dbClient.EntClient))
 	http.Handle("/",
-		playground.Handler("Expert", "/query"),
+		playground.Handler("muni", "/query"),
 	)
 	http.Handle("/query", srv)
 	log.Println("listening on :8081")
