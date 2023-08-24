@@ -4,6 +4,7 @@ package qualification
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/carlosruizg/muni/ent/predicate"
 	"github.com/carlosruizg/muni/enums"
 )
@@ -81,6 +82,29 @@ func ValueNotIn(vs ...enums.QualificationValue) predicate.Qualification {
 		v[i] = vs[i]
 	}
 	return predicate.Qualification(sql.FieldNotIn(FieldValue, v...))
+}
+
+// HasExperts applies the HasEdge predicate on the "experts" edge.
+func HasExperts() predicate.Qualification {
+	return predicate.Qualification(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, ExpertsTable, ExpertsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasExpertsWith applies the HasEdge predicate on the "experts" edge with a given conditions (other predicates).
+func HasExpertsWith(preds ...predicate.Expert) predicate.Qualification {
+	return predicate.Qualification(func(s *sql.Selector) {
+		step := newExpertsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

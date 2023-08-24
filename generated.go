@@ -49,8 +49,9 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Expert struct {
-		ID   func(childComplexity int) int
-		Name func(childComplexity int) int
+		ID             func(childComplexity int) int
+		Name           func(childComplexity int) int
+		Qualifications func(childComplexity int) int
 	}
 
 	LabellingProject struct {
@@ -96,8 +97,9 @@ type ComplexityRoot struct {
 	}
 
 	Qualification struct {
-		ID    func(childComplexity int) int
-		Value func(childComplexity int) int
+		Experts func(childComplexity int) int
+		ID      func(childComplexity int) int
+		Value   func(childComplexity int) int
 	}
 
 	Query struct {
@@ -161,6 +163,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Expert.Name(childComplexity), true
+
+	case "Expert.qualifications":
+		if e.complexity.Expert.Qualifications == nil {
+			break
+		}
+
+		return e.complexity.Expert.Qualifications(childComplexity), true
 
 	case "LabellingProject.callbackURL":
 		if e.complexity.LabellingProject.CallbackURL == nil {
@@ -400,6 +409,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
+
+	case "Qualification.experts":
+		if e.complexity.Qualification.Experts == nil {
+			break
+		}
+
+		return e.complexity.Qualification.Experts(childComplexity), true
 
 	case "Qualification.id":
 		if e.complexity.Qualification.ID == nil {
@@ -970,6 +986,55 @@ func (ec *executionContext) fieldContext_Expert_name(ctx context.Context, field 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Expert_qualifications(ctx context.Context, field graphql.CollectedField, obj *ent.Expert) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Expert_qualifications(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Qualifications(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Qualification)
+	fc.Result = res
+	return ec.marshalOQualification2ᚕᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐQualificationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Expert_qualifications(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Expert",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Qualification_id(ctx, field)
+			case "value":
+				return ec.fieldContext_Qualification_value(ctx, field)
+			case "experts":
+				return ec.fieldContext_Qualification_experts(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Qualification", field.Name)
 		},
 	}
 	return fc, nil
@@ -1723,6 +1788,8 @@ func (ec *executionContext) fieldContext_Mutation_createExpert(ctx context.Conte
 				return ec.fieldContext_Expert_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Expert_name(ctx, field)
+			case "qualifications":
+				return ec.fieldContext_Expert_qualifications(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Expert", field.Name)
 		},
@@ -1784,6 +1851,8 @@ func (ec *executionContext) fieldContext_Mutation_updateExpert(ctx context.Conte
 				return ec.fieldContext_Expert_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Expert_name(ctx, field)
+			case "qualifications":
+				return ec.fieldContext_Expert_qualifications(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Expert", field.Name)
 		},
@@ -2434,6 +2503,55 @@ func (ec *executionContext) fieldContext_Qualification_value(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Qualification_experts(ctx context.Context, field graphql.CollectedField, obj *ent.Qualification) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Qualification_experts(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Experts(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Expert)
+	fc.Result = res
+	return ec.marshalOExpert2ᚕᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐExpertᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Qualification_experts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Qualification",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Expert_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Expert_name(ctx, field)
+			case "qualifications":
+				return ec.fieldContext_Expert_qualifications(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Expert", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_node(ctx, field)
 	if err != nil {
@@ -2584,6 +2702,8 @@ func (ec *executionContext) fieldContext_Query_experts(ctx context.Context, fiel
 				return ec.fieldContext_Expert_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Expert_name(ctx, field)
+			case "qualifications":
+				return ec.fieldContext_Expert_qualifications(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Expert", field.Name)
 		},
@@ -2798,6 +2918,8 @@ func (ec *executionContext) fieldContext_Query_qualifications(ctx context.Contex
 				return ec.fieldContext_Qualification_id(ctx, field)
 			case "value":
 				return ec.fieldContext_Qualification_value(ctx, field)
+			case "experts":
+				return ec.fieldContext_Qualification_experts(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Qualification", field.Name)
 		},
@@ -4714,7 +4836,7 @@ func (ec *executionContext) unmarshalInputCreateExpertInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name"}
+	fieldsInOrder := [...]string{"name", "qualificationIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -4730,6 +4852,15 @@ func (ec *executionContext) unmarshalInputCreateExpertInput(ctx context.Context,
 				return it, err
 			}
 			it.Name = data
+		case "qualificationIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("qualificationIDs"))
+			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.QualificationIDs = data
 		}
 	}
 
@@ -4893,7 +5024,7 @@ func (ec *executionContext) unmarshalInputCreateQualificationInput(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"value"}
+	fieldsInOrder := [...]string{"value", "expertIDs"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -4909,6 +5040,15 @@ func (ec *executionContext) unmarshalInputCreateQualificationInput(ctx context.C
 				return it, err
 			}
 			it.Value = data
+		case "expertIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expertIDs"))
+			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExpertIDs = data
 		}
 	}
 
@@ -4922,7 +5062,7 @@ func (ec *executionContext) unmarshalInputUpdateExpertInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name"}
+	fieldsInOrder := [...]string{"name", "addQualificationIDs", "removeQualificationIDs", "clearQualifications"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -4938,6 +5078,33 @@ func (ec *executionContext) unmarshalInputUpdateExpertInput(ctx context.Context,
 				return it, err
 			}
 			it.Name = data
+		case "addQualificationIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addQualificationIDs"))
+			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AddQualificationIDs = data
+		case "removeQualificationIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeQualificationIDs"))
+			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RemoveQualificationIDs = data
+		case "clearQualifications":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearQualifications"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearQualifications = data
 		}
 	}
 
@@ -5128,7 +5295,7 @@ func (ec *executionContext) unmarshalInputUpdateQualificationInput(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"value"}
+	fieldsInOrder := [...]string{"value", "addExpertIDs", "removeExpertIDs", "clearExperts"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -5144,6 +5311,33 @@ func (ec *executionContext) unmarshalInputUpdateQualificationInput(ctx context.C
 				return it, err
 			}
 			it.Value = data
+		case "addExpertIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addExpertIDs"))
+			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AddExpertIDs = data
+		case "removeExpertIDs":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("removeExpertIDs"))
+			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RemoveExpertIDs = data
+		case "clearExperts":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearExperts"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearExperts = data
 		}
 	}
 
@@ -5206,13 +5400,46 @@ func (ec *executionContext) _Expert(ctx context.Context, sel ast.SelectionSet, o
 		case "id":
 			out.Values[i] = ec._Expert_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._Expert_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "qualifications":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Expert_qualifications(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5568,13 +5795,46 @@ func (ec *executionContext) _Qualification(ctx context.Context, sel ast.Selectio
 		case "id":
 			out.Values[i] = ec._Qualification_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "value":
 			out.Values[i] = ec._Qualification_value(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "experts":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Qualification_experts(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6906,6 +7166,91 @@ func (ec *executionContext) marshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCu
 	return v
 }
 
+func (ec *executionContext) marshalOExpert2ᚕᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐExpertᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Expert) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNExpert2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐExpert(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOID2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]int, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2int(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2int(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
 	if v == nil {
 		return nil, nil
@@ -6943,6 +7288,53 @@ func (ec *executionContext) marshalONode2githubᚗcomᚋcarlosruizgᚋmuniᚋent
 		return graphql.Null
 	}
 	return ec._Node(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOQualification2ᚕᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐQualificationᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Qualification) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNQualification2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋentᚐQualification(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOQualificationQualificationValue2ᚖgithubᚗcomᚋcarlosruizgᚋmuniᚋenumsᚐQualificationValue(ctx context.Context, v interface{}) (*enums.QualificationValue, error) {

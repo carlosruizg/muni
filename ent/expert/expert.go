@@ -4,6 +4,7 @@ package expert
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -13,8 +14,15 @@ const (
 	FieldID = "id"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
+	// EdgeQualifications holds the string denoting the qualifications edge name in mutations.
+	EdgeQualifications = "qualifications"
 	// Table holds the table name of the expert in the database.
 	Table = "experts"
+	// QualificationsTable is the table that holds the qualifications relation/edge. The primary key declared below.
+	QualificationsTable = "expert_qualifications"
+	// QualificationsInverseTable is the table name for the Qualification entity.
+	// It exists in this package in order to avoid circular dependency with the "qualification" package.
+	QualificationsInverseTable = "qualifications"
 )
 
 // Columns holds all SQL columns for expert fields.
@@ -22,6 +30,12 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 }
+
+var (
+	// QualificationsPrimaryKey and QualificationsColumn2 are the table columns denoting the
+	// primary key for the qualifications relation (M2M).
+	QualificationsPrimaryKey = []string{"expert_id", "qualification_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -49,4 +63,25 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByQualificationsCount orders the results by qualifications count.
+func ByQualificationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newQualificationsStep(), opts...)
+	}
+}
+
+// ByQualifications orders the results by qualifications terms.
+func ByQualifications(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newQualificationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newQualificationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(QualificationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, QualificationsTable, QualificationsPrimaryKey...),
+	)
 }

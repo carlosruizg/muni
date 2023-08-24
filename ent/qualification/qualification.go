@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/carlosruizg/muni/enums"
 )
@@ -17,8 +18,15 @@ const (
 	FieldID = "id"
 	// FieldValue holds the string denoting the value field in the database.
 	FieldValue = "value"
+	// EdgeExperts holds the string denoting the experts edge name in mutations.
+	EdgeExperts = "experts"
 	// Table holds the table name of the qualification in the database.
 	Table = "qualifications"
+	// ExpertsTable is the table that holds the experts relation/edge. The primary key declared below.
+	ExpertsTable = "expert_qualifications"
+	// ExpertsInverseTable is the table name for the Expert entity.
+	// It exists in this package in order to avoid circular dependency with the "expert" package.
+	ExpertsInverseTable = "experts"
 )
 
 // Columns holds all SQL columns for qualification fields.
@@ -26,6 +34,12 @@ var Columns = []string{
 	FieldID,
 	FieldValue,
 }
+
+var (
+	// ExpertsPrimaryKey and ExpertsColumn2 are the table columns denoting the
+	// primary key for the experts relation (M2M).
+	ExpertsPrimaryKey = []string{"expert_id", "qualification_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -58,6 +72,27 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByValue orders the results by the value field.
 func ByValue(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldValue, opts...).ToFunc()
+}
+
+// ByExpertsCount orders the results by experts count.
+func ByExpertsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newExpertsStep(), opts...)
+	}
+}
+
+// ByExperts orders the results by experts terms.
+func ByExperts(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newExpertsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newExpertsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ExpertsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, ExpertsTable, ExpertsPrimaryKey...),
+	)
 }
 
 var (

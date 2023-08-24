@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/labellingproject"
 	"github.com/carlosruizg/muni/ent/labellingtask"
@@ -320,6 +321,22 @@ func (c *ExpertClient) GetX(ctx context.Context, id int) *Expert {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryQualifications queries the qualifications edge of a Expert.
+func (c *ExpertClient) QueryQualifications(e *Expert) *QualificationQuery {
+	query := (&QualificationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := e.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(expert.Table, expert.FieldID, id),
+			sqlgraph.To(qualification.Table, qualification.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, expert.QualificationsTable, expert.QualificationsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(e.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -792,6 +809,22 @@ func (c *QualificationClient) GetX(ctx context.Context, id int) *Qualification {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryExperts queries the experts edge of a Qualification.
+func (c *QualificationClient) QueryExperts(q *Qualification) *ExpertQuery {
+	query := (&ExpertClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := q.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(qualification.Table, qualification.FieldID, id),
+			sqlgraph.To(expert.Table, expert.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, qualification.ExpertsTable, qualification.ExpertsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(q.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.

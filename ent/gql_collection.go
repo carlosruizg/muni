@@ -35,6 +35,18 @@ func (e *ExpertQuery) collectField(ctx context.Context, opCtx *graphql.Operation
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+		case "qualifications":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&QualificationClient{config: e.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, qualificationImplementors)...); err != nil {
+				return err
+			}
+			e.WithNamedQualifications(alias, func(wq *QualificationQuery) {
+				*wq = *query
+			})
 		case "name":
 			if _, ok := fieldSeen[expert.FieldName]; !ok {
 				selectedFields = append(selectedFields, expert.FieldName)
@@ -326,6 +338,18 @@ func (q *QualificationQuery) collectField(ctx context.Context, opCtx *graphql.Op
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+		case "experts":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ExpertClient{config: q.config}).Query()
+			)
+			if err := query.collectField(ctx, opCtx, field, path, mayAddCondition(satisfies, expertImplementors)...); err != nil {
+				return err
+			}
+			q.WithNamedExperts(alias, func(wq *ExpertQuery) {
+				*wq = *query
+			})
 		case "value":
 			if _, ok := fieldSeen[qualification.FieldValue]; !ok {
 				selectedFields = append(selectedFields, qualification.FieldValue)

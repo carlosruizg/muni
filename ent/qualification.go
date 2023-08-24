@@ -18,8 +18,33 @@ type Qualification struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// Value holds the value of the "value" field.
-	Value        enums.QualificationValue `json:"value,omitempty"`
+	Value enums.QualificationValue `json:"value,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the QualificationQuery when eager-loading is set.
+	Edges        QualificationEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// QualificationEdges holds the relations/edges for other nodes in the graph.
+type QualificationEdges struct {
+	// Experts holds the value of the experts edge.
+	Experts []*Expert `json:"experts,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+
+	namedExperts map[string][]*Expert
+}
+
+// ExpertsOrErr returns the Experts value or an error if the edge
+// was not loaded in eager-loading.
+func (e QualificationEdges) ExpertsOrErr() ([]*Expert, error) {
+	if e.loadedTypes[0] {
+		return e.Experts, nil
+	}
+	return nil, &NotLoadedError{edge: "experts"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -71,6 +96,11 @@ func (q *Qualification) GetValue(name string) (ent.Value, error) {
 	return q.selectValues.Get(name)
 }
 
+// QueryExperts queries the "experts" edge of the Qualification entity.
+func (q *Qualification) QueryExperts() *ExpertQuery {
+	return NewQualificationClient(q.config).QueryExperts(q)
+}
+
 // Update returns a builder for updating this Qualification.
 // Note that you need to call Qualification.Unwrap() before calling this method if this Qualification
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -98,6 +128,30 @@ func (q *Qualification) String() string {
 	builder.WriteString(fmt.Sprintf("%v", q.Value))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedExperts returns the Experts named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (q *Qualification) NamedExperts(name string) ([]*Expert, error) {
+	if q.Edges.namedExperts == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := q.Edges.namedExperts[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (q *Qualification) appendNamedExperts(name string, edges ...*Expert) {
+	if q.Edges.namedExperts == nil {
+		q.Edges.namedExperts = make(map[string][]*Expert)
+	}
+	if len(edges) == 0 {
+		q.Edges.namedExperts[name] = []*Expert{}
+	} else {
+		q.Edges.namedExperts[name] = append(q.Edges.namedExperts[name], edges...)
+	}
 }
 
 // Qualifications is a parsable slice of Qualification.

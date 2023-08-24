@@ -9,12 +9,16 @@ import (
 
 // CreateExpertInput represents a mutation input for creating experts.
 type CreateExpertInput struct {
-	Name string
+	Name             string
+	QualificationIDs []int
 }
 
 // Mutate applies the CreateExpertInput on the ExpertMutation builder.
 func (i *CreateExpertInput) Mutate(m *ExpertMutation) {
 	m.SetName(i.Name)
+	if v := i.QualificationIDs; len(v) > 0 {
+		m.AddQualificationIDs(v...)
+	}
 }
 
 // SetInput applies the change-set in the CreateExpertInput on the ExpertCreate builder.
@@ -25,13 +29,25 @@ func (c *ExpertCreate) SetInput(i CreateExpertInput) *ExpertCreate {
 
 // UpdateExpertInput represents a mutation input for updating experts.
 type UpdateExpertInput struct {
-	Name *string
+	Name                   *string
+	ClearQualifications    bool
+	AddQualificationIDs    []int
+	RemoveQualificationIDs []int
 }
 
 // Mutate applies the UpdateExpertInput on the ExpertMutation builder.
 func (i *UpdateExpertInput) Mutate(m *ExpertMutation) {
 	if v := i.Name; v != nil {
 		m.SetName(*v)
+	}
+	if i.ClearQualifications {
+		m.ClearQualifications()
+	}
+	if v := i.AddQualificationIDs; len(v) > 0 {
+		m.AddQualificationIDs(v...)
+	}
+	if v := i.RemoveQualificationIDs; len(v) > 0 {
+		m.RemoveQualificationIDs(v...)
 	}
 }
 
@@ -235,12 +251,16 @@ func (c *LabellingTaskResponseUpdateOne) SetInput(i UpdateLabellingTaskResponseI
 
 // CreateQualificationInput represents a mutation input for creating qualifications.
 type CreateQualificationInput struct {
-	Value enums.QualificationValue
+	Value     enums.QualificationValue
+	ExpertIDs []int
 }
 
 // Mutate applies the CreateQualificationInput on the QualificationMutation builder.
 func (i *CreateQualificationInput) Mutate(m *QualificationMutation) {
 	m.SetValue(i.Value)
+	if v := i.ExpertIDs; len(v) > 0 {
+		m.AddExpertIDs(v...)
+	}
 }
 
 // SetInput applies the change-set in the CreateQualificationInput on the QualificationCreate builder.
@@ -251,13 +271,25 @@ func (c *QualificationCreate) SetInput(i CreateQualificationInput) *Qualificatio
 
 // UpdateQualificationInput represents a mutation input for updating qualifications.
 type UpdateQualificationInput struct {
-	Value *enums.QualificationValue
+	Value           *enums.QualificationValue
+	ClearExperts    bool
+	AddExpertIDs    []int
+	RemoveExpertIDs []int
 }
 
 // Mutate applies the UpdateQualificationInput on the QualificationMutation builder.
 func (i *UpdateQualificationInput) Mutate(m *QualificationMutation) {
 	if v := i.Value; v != nil {
 		m.SetValue(*v)
+	}
+	if i.ClearExperts {
+		m.ClearExperts()
+	}
+	if v := i.AddExpertIDs; len(v) > 0 {
+		m.AddExpertIDs(v...)
+	}
+	if v := i.RemoveExpertIDs; len(v) > 0 {
+		m.RemoveExpertIDs(v...)
 	}
 }
 

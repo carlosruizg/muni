@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/qualification"
 	"github.com/carlosruizg/muni/enums"
 )
@@ -24,6 +25,21 @@ type QualificationCreate struct {
 func (qc *QualificationCreate) SetValue(ev enums.QualificationValue) *QualificationCreate {
 	qc.mutation.SetValue(ev)
 	return qc
+}
+
+// AddExpertIDs adds the "experts" edge to the Expert entity by IDs.
+func (qc *QualificationCreate) AddExpertIDs(ids ...int) *QualificationCreate {
+	qc.mutation.AddExpertIDs(ids...)
+	return qc
+}
+
+// AddExperts adds the "experts" edges to the Expert entity.
+func (qc *QualificationCreate) AddExperts(e ...*Expert) *QualificationCreate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return qc.AddExpertIDs(ids...)
 }
 
 // Mutation returns the QualificationMutation object of the builder.
@@ -97,6 +113,22 @@ func (qc *QualificationCreate) createSpec() (*Qualification, *sqlgraph.CreateSpe
 	if value, ok := qc.mutation.Value(); ok {
 		_spec.SetField(qualification.FieldValue, field.TypeEnum, value)
 		_node.Value = value
+	}
+	if nodes := qc.mutation.ExpertsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   qualification.ExpertsTable,
+			Columns: qualification.ExpertsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(expert.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

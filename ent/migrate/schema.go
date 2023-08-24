@@ -70,6 +70,31 @@ var (
 		Columns:    QualificationsColumns,
 		PrimaryKey: []*schema.Column{QualificationsColumns[0]},
 	}
+	// ExpertQualificationsColumns holds the columns for the "expert_qualifications" table.
+	ExpertQualificationsColumns = []*schema.Column{
+		{Name: "expert_id", Type: field.TypeInt},
+		{Name: "qualification_id", Type: field.TypeInt},
+	}
+	// ExpertQualificationsTable holds the schema information for the "expert_qualifications" table.
+	ExpertQualificationsTable = &schema.Table{
+		Name:       "expert_qualifications",
+		Columns:    ExpertQualificationsColumns,
+		PrimaryKey: []*schema.Column{ExpertQualificationsColumns[0], ExpertQualificationsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "expert_qualifications_expert_id",
+				Columns:    []*schema.Column{ExpertQualificationsColumns[0]},
+				RefColumns: []*schema.Column{ExpertsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "expert_qualifications_qualification_id",
+				Columns:    []*schema.Column{ExpertQualificationsColumns[1]},
+				RefColumns: []*schema.Column{QualificationsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ExpertsTable,
@@ -77,8 +102,11 @@ var (
 		LabellingTasksTable,
 		LabellingTaskResponsesTable,
 		QualificationsTable,
+		ExpertQualificationsTable,
 	}
 )
 
 func init() {
+	ExpertQualificationsTable.ForeignKeys[0].RefTable = ExpertsTable
+	ExpertQualificationsTable.ForeignKeys[1].RefTable = QualificationsTable
 }

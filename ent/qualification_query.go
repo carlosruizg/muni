@@ -4,12 +4,14 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/predicate"
 	"github.com/carlosruizg/muni/ent/qualification"
 )
@@ -17,12 +19,14 @@ import (
 // QualificationQuery is the builder for querying Qualification entities.
 type QualificationQuery struct {
 	config
-	ctx        *QueryContext
-	order      []qualification.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Qualification
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*Qualification) error
+	ctx              *QueryContext
+	order            []qualification.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.Qualification
+	withExperts      *ExpertQuery
+	modifiers        []func(*sql.Selector)
+	loadTotal        []func(context.Context, []*Qualification) error
+	withNamedExperts map[string]*ExpertQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -57,6 +61,28 @@ func (qq *QualificationQuery) Unique(unique bool) *QualificationQuery {
 func (qq *QualificationQuery) Order(o ...qualification.OrderOption) *QualificationQuery {
 	qq.order = append(qq.order, o...)
 	return qq
+}
+
+// QueryExperts chains the current query on the "experts" edge.
+func (qq *QualificationQuery) QueryExperts() *ExpertQuery {
+	query := (&ExpertClient{config: qq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := qq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := qq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(qualification.Table, qualification.FieldID, selector),
+			sqlgraph.To(expert.Table, expert.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, qualification.ExpertsTable, qualification.ExpertsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(qq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Qualification entity from the query.
@@ -246,15 +272,27 @@ func (qq *QualificationQuery) Clone() *QualificationQuery {
 		return nil
 	}
 	return &QualificationQuery{
-		config:     qq.config,
-		ctx:        qq.ctx.Clone(),
-		order:      append([]qualification.OrderOption{}, qq.order...),
-		inters:     append([]Interceptor{}, qq.inters...),
-		predicates: append([]predicate.Qualification{}, qq.predicates...),
+		config:      qq.config,
+		ctx:         qq.ctx.Clone(),
+		order:       append([]qualification.OrderOption{}, qq.order...),
+		inters:      append([]Interceptor{}, qq.inters...),
+		predicates:  append([]predicate.Qualification{}, qq.predicates...),
+		withExperts: qq.withExperts.Clone(),
 		// clone intermediate query.
 		sql:  qq.sql.Clone(),
 		path: qq.path,
 	}
+}
+
+// WithExperts tells the query-builder to eager-load the nodes that are connected to
+// the "experts" edge. The optional arguments are used to configure the query builder of the edge.
+func (qq *QualificationQuery) WithExperts(opts ...func(*ExpertQuery)) *QualificationQuery {
+	query := (&ExpertClient{config: qq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	qq.withExperts = query
+	return qq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -333,8 +371,11 @@ func (qq *QualificationQuery) prepareQuery(ctx context.Context) error {
 
 func (qq *QualificationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Qualification, error) {
 	var (
-		nodes = []*Qualification{}
-		_spec = qq.querySpec()
+		nodes       = []*Qualification{}
+		_spec       = qq.querySpec()
+		loadedTypes = [1]bool{
+			qq.withExperts != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Qualification).scanValues(nil, columns)
@@ -342,6 +383,7 @@ func (qq *QualificationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Qualification{config: qq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(qq.modifiers) > 0 {
@@ -356,12 +398,88 @@ func (qq *QualificationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := qq.withExperts; query != nil {
+		if err := qq.loadExperts(ctx, query, nodes,
+			func(n *Qualification) { n.Edges.Experts = []*Expert{} },
+			func(n *Qualification, e *Expert) { n.Edges.Experts = append(n.Edges.Experts, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range qq.withNamedExperts {
+		if err := qq.loadExperts(ctx, query, nodes,
+			func(n *Qualification) { n.appendNamedExperts(name) },
+			func(n *Qualification, e *Expert) { n.appendNamedExperts(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range qq.loadTotal {
 		if err := qq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (qq *QualificationQuery) loadExperts(ctx context.Context, query *ExpertQuery, nodes []*Qualification, init func(*Qualification), assign func(*Qualification, *Expert)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Qualification)
+	nids := make(map[int]map[*Qualification]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(qualification.ExpertsTable)
+		s.Join(joinT).On(s.C(expert.FieldID), joinT.C(qualification.ExpertsPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(qualification.ExpertsPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(qualification.ExpertsPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Qualification]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Expert](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "experts" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
 }
 
 func (qq *QualificationQuery) sqlCount(ctx context.Context) (int, error) {
@@ -446,6 +564,20 @@ func (qq *QualificationQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedExperts tells the query-builder to eager-load the nodes that are connected to the "experts"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (qq *QualificationQuery) WithNamedExperts(name string, opts ...func(*ExpertQuery)) *QualificationQuery {
+	query := (&ExpertClient{config: qq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if qq.withNamedExperts == nil {
+		qq.withNamedExperts = make(map[string]*ExpertQuery)
+	}
+	qq.withNamedExperts[name] = query
+	return qq
 }
 
 // QualificationGroupBy is the group-by builder for Qualification entities.

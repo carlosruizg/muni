@@ -4,6 +4,7 @@ import (
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
 	"entgo.io/ent/schema"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/carlosruizg/muni/enums"
 )
@@ -22,7 +23,9 @@ func (Qualification) Fields() []ent.Field {
 
 // Edges of the Qualification.
 func (Qualification) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("experts", Expert.Type).Ref("qualifications"),
+	}
 }
 
 func (Qualification) Annotations() []schema.Annotation {

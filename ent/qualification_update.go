@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/carlosruizg/muni/ent/expert"
 	"github.com/carlosruizg/muni/ent/predicate"
 	"github.com/carlosruizg/muni/ent/qualification"
 	"github.com/carlosruizg/muni/enums"
@@ -34,9 +35,45 @@ func (qu *QualificationUpdate) SetValue(ev enums.QualificationValue) *Qualificat
 	return qu
 }
 
+// AddExpertIDs adds the "experts" edge to the Expert entity by IDs.
+func (qu *QualificationUpdate) AddExpertIDs(ids ...int) *QualificationUpdate {
+	qu.mutation.AddExpertIDs(ids...)
+	return qu
+}
+
+// AddExperts adds the "experts" edges to the Expert entity.
+func (qu *QualificationUpdate) AddExperts(e ...*Expert) *QualificationUpdate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return qu.AddExpertIDs(ids...)
+}
+
 // Mutation returns the QualificationMutation object of the builder.
 func (qu *QualificationUpdate) Mutation() *QualificationMutation {
 	return qu.mutation
+}
+
+// ClearExperts clears all "experts" edges to the Expert entity.
+func (qu *QualificationUpdate) ClearExperts() *QualificationUpdate {
+	qu.mutation.ClearExperts()
+	return qu
+}
+
+// RemoveExpertIDs removes the "experts" edge to Expert entities by IDs.
+func (qu *QualificationUpdate) RemoveExpertIDs(ids ...int) *QualificationUpdate {
+	qu.mutation.RemoveExpertIDs(ids...)
+	return qu
+}
+
+// RemoveExperts removes "experts" edges to Expert entities.
+func (qu *QualificationUpdate) RemoveExperts(e ...*Expert) *QualificationUpdate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return qu.RemoveExpertIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -91,6 +128,51 @@ func (qu *QualificationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := qu.mutation.Value(); ok {
 		_spec.SetField(qualification.FieldValue, field.TypeEnum, value)
 	}
+	if qu.mutation.ExpertsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   qualification.ExpertsTable,
+			Columns: qualification.ExpertsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(expert.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := qu.mutation.RemovedExpertsIDs(); len(nodes) > 0 && !qu.mutation.ExpertsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   qualification.ExpertsTable,
+			Columns: qualification.ExpertsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(expert.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := qu.mutation.ExpertsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   qualification.ExpertsTable,
+			Columns: qualification.ExpertsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(expert.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, qu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{qualification.Label}
@@ -117,9 +199,45 @@ func (quo *QualificationUpdateOne) SetValue(ev enums.QualificationValue) *Qualif
 	return quo
 }
 
+// AddExpertIDs adds the "experts" edge to the Expert entity by IDs.
+func (quo *QualificationUpdateOne) AddExpertIDs(ids ...int) *QualificationUpdateOne {
+	quo.mutation.AddExpertIDs(ids...)
+	return quo
+}
+
+// AddExperts adds the "experts" edges to the Expert entity.
+func (quo *QualificationUpdateOne) AddExperts(e ...*Expert) *QualificationUpdateOne {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return quo.AddExpertIDs(ids...)
+}
+
 // Mutation returns the QualificationMutation object of the builder.
 func (quo *QualificationUpdateOne) Mutation() *QualificationMutation {
 	return quo.mutation
+}
+
+// ClearExperts clears all "experts" edges to the Expert entity.
+func (quo *QualificationUpdateOne) ClearExperts() *QualificationUpdateOne {
+	quo.mutation.ClearExperts()
+	return quo
+}
+
+// RemoveExpertIDs removes the "experts" edge to Expert entities by IDs.
+func (quo *QualificationUpdateOne) RemoveExpertIDs(ids ...int) *QualificationUpdateOne {
+	quo.mutation.RemoveExpertIDs(ids...)
+	return quo
+}
+
+// RemoveExperts removes "experts" edges to Expert entities.
+func (quo *QualificationUpdateOne) RemoveExperts(e ...*Expert) *QualificationUpdateOne {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return quo.RemoveExpertIDs(ids...)
 }
 
 // Where appends a list predicates to the QualificationUpdate builder.
@@ -203,6 +321,51 @@ func (quo *QualificationUpdateOne) sqlSave(ctx context.Context) (_node *Qualific
 	}
 	if value, ok := quo.mutation.Value(); ok {
 		_spec.SetField(qualification.FieldValue, field.TypeEnum, value)
+	}
+	if quo.mutation.ExpertsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   qualification.ExpertsTable,
+			Columns: qualification.ExpertsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(expert.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := quo.mutation.RemovedExpertsIDs(); len(nodes) > 0 && !quo.mutation.ExpertsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   qualification.ExpertsTable,
+			Columns: qualification.ExpertsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(expert.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := quo.mutation.ExpertsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   qualification.ExpertsTable,
+			Columns: qualification.ExpertsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(expert.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Qualification{config: quo.config}
 	_spec.Assign = _node.assignValues
