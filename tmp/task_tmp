@@ -38,3 +38,4 @@ func (LabellingTask) Annotations() []schema.Annotation {
 		entgql.Mutations(entgql.MutationCreate(), entgql.MutationUpdate()),
 	}
 }
+

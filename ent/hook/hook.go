@@ -9,52 +9,16 @@ import (
 	"github.com/carlosruizg/muni/ent"
 )
 
-// The ExpertFunc type is an adapter to allow the use of ordinary
-// function as Expert mutator.
-type ExpertFunc func(context.Context, *ent.ExpertMutation) (ent.Value, error)
+// The LabellingProjectFunc type is an adapter to allow the use of ordinary
+// function as LabellingProject mutator.
+type LabellingProjectFunc func(context.Context, *ent.LabellingProjectMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f ExpertFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.ExpertMutation); ok {
+func (f LabellingProjectFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LabellingProjectMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ExpertMutation", m)
-}
-
-// The LabellingTaskFunc type is an adapter to allow the use of ordinary
-// function as LabellingTask mutator.
-type LabellingTaskFunc func(context.Context, *ent.LabellingTaskMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f LabellingTaskFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.LabellingTaskMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LabellingTaskMutation", m)
-}
-
-// The LabellingTaskResponseFunc type is an adapter to allow the use of ordinary
-// function as LabellingTaskResponse mutator.
-type LabellingTaskResponseFunc func(context.Context, *ent.LabellingTaskResponseMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f LabellingTaskResponseFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.LabellingTaskResponseMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LabellingTaskResponseMutation", m)
-}
-
-// The QualificationFunc type is an adapter to allow the use of ordinary
-// function as Qualification mutator.
-type QualificationFunc func(context.Context, *ent.QualificationMutation) (ent.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f QualificationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	if mv, ok := m.(*ent.QualificationMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.QualificationMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LabellingProjectMutation", m)
 }
 
 // Condition is a hook condition function.

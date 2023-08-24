@@ -3,8 +3,7 @@
 package ent
 
 import (
-	"github.com/carlosruizg/muni/ent/expert"
-	"github.com/carlosruizg/muni/ent/labellingtask"
+	"github.com/carlosruizg/muni/ent/labellingproject"
 	"github.com/carlosruizg/muni/ent/schema"
 )
 
@@ -12,16 +11,18 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	expertFields := schema.Expert{}.Fields()
-	_ = expertFields
-	// expertDescName is the schema descriptor for name field.
-	expertDescName := expertFields[0].Descriptor()
-	// expert.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	expert.NameValidator = expertDescName.Validators[0].(func(string) error)
-	labellingtaskFields := schema.LabellingTask{}.Fields()
-	_ = labellingtaskFields
-	// labellingtaskDescTitle is the schema descriptor for title field.
-	labellingtaskDescTitle := labellingtaskFields[0].Descriptor()
-	// labellingtask.TitleValidator is a validator for the "title" field. It is called by the builders before save.
-	labellingtask.TitleValidator = labellingtaskDescTitle.Validators[0].(func(string) error)
+	labellingprojectFields := schema.LabellingProject{}.Fields()
+	_ = labellingprojectFields
+	// labellingprojectDescName is the schema descriptor for name field.
+	labellingprojectDescName := labellingprojectFields[0].Descriptor()
+	// labellingproject.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	labellingproject.NameValidator = labellingprojectDescName.Validators[0].(func(string) error)
+	// labellingprojectDescIsPrivate is the schema descriptor for is_private field.
+	labellingprojectDescIsPrivate := labellingprojectFields[3].Descriptor()
+	// labellingproject.DefaultIsPrivate holds the default value on creation for the is_private field.
+	labellingproject.DefaultIsPrivate = labellingprojectDescIsPrivate.Default.(bool)
+	// labellingprojectDescWorkersPerTask is the schema descriptor for workers_per_task field.
+	labellingprojectDescWorkersPerTask := labellingprojectFields[5].Descriptor()
+	// labellingproject.DefaultWorkersPerTask holds the default value on creation for the workers_per_task field.
+	labellingproject.DefaultWorkersPerTask = labellingprojectDescWorkersPerTask.Default.(int)
 }

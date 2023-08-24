@@ -5,11 +5,15 @@ import (
 	"github.com/carlosruizg/muni/ent"
 )
 
+// "github.com/carlosruizg/muni/ent"
+
 // This file will not be regenerated automatically.
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
-type Resolver struct{ client *ent.Client }
+type Resolver struct {
+	client *ent.Client
+}
 
 // NewSchema creates a graphql executable schema.
 func NewSchema(client *ent.Client) graphql.ExecutableSchema {

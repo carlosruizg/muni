@@ -10,12 +10,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/carlosruizg/muni/ent/expert"
-	"github.com/carlosruizg/muni/ent/labellingtask"
-	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
+	"github.com/carlosruizg/muni/ent/labellingproject"
 	"github.com/carlosruizg/muni/ent/predicate"
-	"github.com/carlosruizg/muni/ent/qualification"
-	"github.com/carlosruizg/muni/enums"
 )
 
 const (
@@ -27,42 +23,39 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeExpert                = "Expert"
-	TypeLabellingTask         = "LabellingTask"
-	TypeLabellingTaskResponse = "LabellingTaskResponse"
-	TypeQualification         = "Qualification"
+	TypeLabellingProject = "LabellingProject"
 )
 
-// ExpertMutation represents an operation that mutates the Expert nodes in the graph.
-type ExpertMutation struct {
+// LabellingProjectMutation represents an operation that mutates the LabellingProject nodes in the graph.
+type LabellingProjectMutation struct {
 	config
-	op                    Op
-	typ                   string
-	id                    *int
-	name                  *string
-	clearedFields         map[string]struct{}
-	task_responses        map[int]struct{}
-	removedtask_responses map[int]struct{}
-	clearedtask_responses bool
-	qualifications        map[int]struct{}
-	removedqualifications map[int]struct{}
-	clearedqualifications bool
-	done                  bool
-	oldValue              func(context.Context) (*Expert, error)
-	predicates            []predicate.Expert
+	op                  Op
+	typ                 string
+	id                  *int
+	name                *string
+	status              *labellingproject.Status
+	description         *string
+	is_private          *bool
+	callback_url        *string
+	workers_per_task    *int
+	addworkers_per_task *int
+	clearedFields       map[string]struct{}
+	done                bool
+	oldValue            func(context.Context) (*LabellingProject, error)
+	predicates          []predicate.LabellingProject
 }
 
-var _ ent.Mutation = (*ExpertMutation)(nil)
+var _ ent.Mutation = (*LabellingProjectMutation)(nil)
 
-// expertOption allows management of the mutation configuration using functional options.
-type expertOption func(*ExpertMutation)
+// labellingprojectOption allows management of the mutation configuration using functional options.
+type labellingprojectOption func(*LabellingProjectMutation)
 
-// newExpertMutation creates new mutation for the Expert entity.
-func newExpertMutation(c config, op Op, opts ...expertOption) *ExpertMutation {
-	m := &ExpertMutation{
+// newLabellingProjectMutation creates new mutation for the LabellingProject entity.
+func newLabellingProjectMutation(c config, op Op, opts ...labellingprojectOption) *LabellingProjectMutation {
+	m := &LabellingProjectMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeExpert,
+		typ:           TypeLabellingProject,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -71,20 +64,20 @@ func newExpertMutation(c config, op Op, opts ...expertOption) *ExpertMutation {
 	return m
 }
 
-// withExpertID sets the ID field of the mutation.
-func withExpertID(id int) expertOption {
-	return func(m *ExpertMutation) {
+// withLabellingProjectID sets the ID field of the mutation.
+func withLabellingProjectID(id int) labellingprojectOption {
+	return func(m *LabellingProjectMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *Expert
+			value *LabellingProject
 		)
-		m.oldValue = func(ctx context.Context) (*Expert, error) {
+		m.oldValue = func(ctx context.Context) (*LabellingProject, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().Expert.Get(ctx, id)
+					value, err = m.Client().LabellingProject.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -93,10 +86,10 @@ func withExpertID(id int) expertOption {
 	}
 }
 
-// withExpert sets the old Expert of the mutation.
-func withExpert(node *Expert) expertOption {
-	return func(m *ExpertMutation) {
-		m.oldValue = func(context.Context) (*Expert, error) {
+// withLabellingProject sets the old LabellingProject of the mutation.
+func withLabellingProject(node *LabellingProject) labellingprojectOption {
+	return func(m *LabellingProjectMutation) {
+		m.oldValue = func(context.Context) (*LabellingProject, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -105,7 +98,7 @@ func withExpert(node *Expert) expertOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m ExpertMutation) Client() *Client {
+func (m LabellingProjectMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -113,7 +106,7 @@ func (m ExpertMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m ExpertMutation) Tx() (*Tx, error) {
+func (m LabellingProjectMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -124,7 +117,7 @@ func (m ExpertMutation) Tx() (*Tx, error) {
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *ExpertMutation) ID() (id int, exists bool) {
+func (m *LabellingProjectMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -135,7 +128,7 @@ func (m *ExpertMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *ExpertMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *LabellingProjectMutation) IDs(ctx context.Context) ([]int, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
@@ -144,19 +137,19 @@ func (m *ExpertMutation) IDs(ctx context.Context) ([]int, error) {
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Expert.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().LabellingProject.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
 // SetName sets the "name" field.
-func (m *ExpertMutation) SetName(s string) {
+func (m *LabellingProjectMutation) SetName(s string) {
 	m.name = &s
 }
 
 // Name returns the value of the "name" field in the mutation.
-func (m *ExpertMutation) Name() (r string, exists bool) {
+func (m *LabellingProjectMutation) Name() (r string, exists bool) {
 	v := m.name
 	if v == nil {
 		return
@@ -164,10 +157,10 @@ func (m *ExpertMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old "name" field's value of the Expert entity.
-// If the Expert object wasn't provided to the builder, the object is fetched from the database.
+// OldName returns the old "name" field's value of the LabellingProject entity.
+// If the LabellingProject object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ExpertMutation) OldName(ctx context.Context) (v string, err error) {
+func (m *LabellingProjectMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldName is only allowed on UpdateOne operations")
 	}
@@ -182,522 +175,53 @@ func (m *ExpertMutation) OldName(ctx context.Context) (v string, err error) {
 }
 
 // ResetName resets all changes to the "name" field.
-func (m *ExpertMutation) ResetName() {
+func (m *LabellingProjectMutation) ResetName() {
 	m.name = nil
 }
 
-// AddTaskResponseIDs adds the "task_responses" edge to the LabellingTaskResponse entity by ids.
-func (m *ExpertMutation) AddTaskResponseIDs(ids ...int) {
-	if m.task_responses == nil {
-		m.task_responses = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.task_responses[ids[i]] = struct{}{}
-	}
+// SetStatus sets the "status" field.
+func (m *LabellingProjectMutation) SetStatus(l labellingproject.Status) {
+	m.status = &l
 }
 
-// ClearTaskResponses clears the "task_responses" edge to the LabellingTaskResponse entity.
-func (m *ExpertMutation) ClearTaskResponses() {
-	m.clearedtask_responses = true
-}
-
-// TaskResponsesCleared reports if the "task_responses" edge to the LabellingTaskResponse entity was cleared.
-func (m *ExpertMutation) TaskResponsesCleared() bool {
-	return m.clearedtask_responses
-}
-
-// RemoveTaskResponseIDs removes the "task_responses" edge to the LabellingTaskResponse entity by IDs.
-func (m *ExpertMutation) RemoveTaskResponseIDs(ids ...int) {
-	if m.removedtask_responses == nil {
-		m.removedtask_responses = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.task_responses, ids[i])
-		m.removedtask_responses[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedTaskResponses returns the removed IDs of the "task_responses" edge to the LabellingTaskResponse entity.
-func (m *ExpertMutation) RemovedTaskResponsesIDs() (ids []int) {
-	for id := range m.removedtask_responses {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// TaskResponsesIDs returns the "task_responses" edge IDs in the mutation.
-func (m *ExpertMutation) TaskResponsesIDs() (ids []int) {
-	for id := range m.task_responses {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetTaskResponses resets all changes to the "task_responses" edge.
-func (m *ExpertMutation) ResetTaskResponses() {
-	m.task_responses = nil
-	m.clearedtask_responses = false
-	m.removedtask_responses = nil
-}
-
-// AddQualificationIDs adds the "qualifications" edge to the Qualification entity by ids.
-func (m *ExpertMutation) AddQualificationIDs(ids ...int) {
-	if m.qualifications == nil {
-		m.qualifications = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.qualifications[ids[i]] = struct{}{}
-	}
-}
-
-// ClearQualifications clears the "qualifications" edge to the Qualification entity.
-func (m *ExpertMutation) ClearQualifications() {
-	m.clearedqualifications = true
-}
-
-// QualificationsCleared reports if the "qualifications" edge to the Qualification entity was cleared.
-func (m *ExpertMutation) QualificationsCleared() bool {
-	return m.clearedqualifications
-}
-
-// RemoveQualificationIDs removes the "qualifications" edge to the Qualification entity by IDs.
-func (m *ExpertMutation) RemoveQualificationIDs(ids ...int) {
-	if m.removedqualifications == nil {
-		m.removedqualifications = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.qualifications, ids[i])
-		m.removedqualifications[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedQualifications returns the removed IDs of the "qualifications" edge to the Qualification entity.
-func (m *ExpertMutation) RemovedQualificationsIDs() (ids []int) {
-	for id := range m.removedqualifications {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// QualificationsIDs returns the "qualifications" edge IDs in the mutation.
-func (m *ExpertMutation) QualificationsIDs() (ids []int) {
-	for id := range m.qualifications {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetQualifications resets all changes to the "qualifications" edge.
-func (m *ExpertMutation) ResetQualifications() {
-	m.qualifications = nil
-	m.clearedqualifications = false
-	m.removedqualifications = nil
-}
-
-// Where appends a list predicates to the ExpertMutation builder.
-func (m *ExpertMutation) Where(ps ...predicate.Expert) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the ExpertMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *ExpertMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Expert, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *ExpertMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *ExpertMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (Expert).
-func (m *ExpertMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *ExpertMutation) Fields() []string {
-	fields := make([]string, 0, 1)
-	if m.name != nil {
-		fields = append(fields, expert.FieldName)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *ExpertMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case expert.FieldName:
-		return m.Name()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *ExpertMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case expert.FieldName:
-		return m.OldName(ctx)
-	}
-	return nil, fmt.Errorf("unknown Expert field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *ExpertMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case expert.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Expert field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *ExpertMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *ExpertMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *ExpertMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Expert numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *ExpertMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *ExpertMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *ExpertMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Expert nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *ExpertMutation) ResetField(name string) error {
-	switch name {
-	case expert.FieldName:
-		m.ResetName()
-		return nil
-	}
-	return fmt.Errorf("unknown Expert field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *ExpertMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.task_responses != nil {
-		edges = append(edges, expert.EdgeTaskResponses)
-	}
-	if m.qualifications != nil {
-		edges = append(edges, expert.EdgeQualifications)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *ExpertMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case expert.EdgeTaskResponses:
-		ids := make([]ent.Value, 0, len(m.task_responses))
-		for id := range m.task_responses {
-			ids = append(ids, id)
-		}
-		return ids
-	case expert.EdgeQualifications:
-		ids := make([]ent.Value, 0, len(m.qualifications))
-		for id := range m.qualifications {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *ExpertMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedtask_responses != nil {
-		edges = append(edges, expert.EdgeTaskResponses)
-	}
-	if m.removedqualifications != nil {
-		edges = append(edges, expert.EdgeQualifications)
-	}
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *ExpertMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case expert.EdgeTaskResponses:
-		ids := make([]ent.Value, 0, len(m.removedtask_responses))
-		for id := range m.removedtask_responses {
-			ids = append(ids, id)
-		}
-		return ids
-	case expert.EdgeQualifications:
-		ids := make([]ent.Value, 0, len(m.removedqualifications))
-		for id := range m.removedqualifications {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *ExpertMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedtask_responses {
-		edges = append(edges, expert.EdgeTaskResponses)
-	}
-	if m.clearedqualifications {
-		edges = append(edges, expert.EdgeQualifications)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *ExpertMutation) EdgeCleared(name string) bool {
-	switch name {
-	case expert.EdgeTaskResponses:
-		return m.clearedtask_responses
-	case expert.EdgeQualifications:
-		return m.clearedqualifications
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *ExpertMutation) ClearEdge(name string) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Expert unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *ExpertMutation) ResetEdge(name string) error {
-	switch name {
-	case expert.EdgeTaskResponses:
-		m.ResetTaskResponses()
-		return nil
-	case expert.EdgeQualifications:
-		m.ResetQualifications()
-		return nil
-	}
-	return fmt.Errorf("unknown Expert edge %s", name)
-}
-
-// LabellingTaskMutation represents an operation that mutates the LabellingTask nodes in the graph.
-type LabellingTaskMutation struct {
-	config
-	op                         Op
-	typ                        string
-	id                         *int
-	title                      *string
-	description                *string
-	qualification_required     *bool
-	callback_url               *string
-	clearedFields              map[string]struct{}
-	responses                  map[int]struct{}
-	removedresponses           map[int]struct{}
-	clearedresponses           bool
-	expert_requirements        map[int]struct{}
-	removedexpert_requirements map[int]struct{}
-	clearedexpert_requirements bool
-	done                       bool
-	oldValue                   func(context.Context) (*LabellingTask, error)
-	predicates                 []predicate.LabellingTask
-}
-
-var _ ent.Mutation = (*LabellingTaskMutation)(nil)
-
-// labellingtaskOption allows management of the mutation configuration using functional options.
-type labellingtaskOption func(*LabellingTaskMutation)
-
-// newLabellingTaskMutation creates new mutation for the LabellingTask entity.
-func newLabellingTaskMutation(c config, op Op, opts ...labellingtaskOption) *LabellingTaskMutation {
-	m := &LabellingTaskMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeLabellingTask,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withLabellingTaskID sets the ID field of the mutation.
-func withLabellingTaskID(id int) labellingtaskOption {
-	return func(m *LabellingTaskMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *LabellingTask
-		)
-		m.oldValue = func(ctx context.Context) (*LabellingTask, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().LabellingTask.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withLabellingTask sets the old LabellingTask of the mutation.
-func withLabellingTask(node *LabellingTask) labellingtaskOption {
-	return func(m *LabellingTaskMutation) {
-		m.oldValue = func(context.Context) (*LabellingTask, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m LabellingTaskMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m LabellingTaskMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *LabellingTaskMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *LabellingTaskMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().LabellingTask.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetTitle sets the "title" field.
-func (m *LabellingTaskMutation) SetTitle(s string) {
-	m.title = &s
-}
-
-// Title returns the value of the "title" field in the mutation.
-func (m *LabellingTaskMutation) Title() (r string, exists bool) {
-	v := m.title
+// Status returns the value of the "status" field in the mutation.
+func (m *LabellingProjectMutation) Status() (r labellingproject.Status, exists bool) {
+	v := m.status
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTitle returns the old "title" field's value of the LabellingTask entity.
-// If the LabellingTask object wasn't provided to the builder, the object is fetched from the database.
+// OldStatus returns the old "status" field's value of the LabellingProject entity.
+// If the LabellingProject object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LabellingTaskMutation) OldTitle(ctx context.Context) (v string, err error) {
+func (m *LabellingProjectMutation) OldStatus(ctx context.Context) (v labellingproject.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTitle requires an ID field in the mutation")
+		return v, errors.New("OldStatus requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
 	}
-	return oldValue.Title, nil
+	return oldValue.Status, nil
 }
 
-// ResetTitle resets all changes to the "title" field.
-func (m *LabellingTaskMutation) ResetTitle() {
-	m.title = nil
+// ResetStatus resets all changes to the "status" field.
+func (m *LabellingProjectMutation) ResetStatus() {
+	m.status = nil
 }
 
 // SetDescription sets the "description" field.
-func (m *LabellingTaskMutation) SetDescription(s string) {
+func (m *LabellingProjectMutation) SetDescription(s string) {
 	m.description = &s
 }
 
 // Description returns the value of the "description" field in the mutation.
-func (m *LabellingTaskMutation) Description() (r string, exists bool) {
+func (m *LabellingProjectMutation) Description() (r string, exists bool) {
 	v := m.description
 	if v == nil {
 		return
@@ -705,10 +229,10 @@ func (m *LabellingTaskMutation) Description() (r string, exists bool) {
 	return *v, true
 }
 
-// OldDescription returns the old "description" field's value of the LabellingTask entity.
-// If the LabellingTask object wasn't provided to the builder, the object is fetched from the database.
+// OldDescription returns the old "description" field's value of the LabellingProject entity.
+// If the LabellingProject object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LabellingTaskMutation) OldDescription(ctx context.Context) (v string, err error) {
+func (m *LabellingProjectMutation) OldDescription(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
 	}
@@ -723,66 +247,66 @@ func (m *LabellingTaskMutation) OldDescription(ctx context.Context) (v string, e
 }
 
 // ClearDescription clears the value of the "description" field.
-func (m *LabellingTaskMutation) ClearDescription() {
+func (m *LabellingProjectMutation) ClearDescription() {
 	m.description = nil
-	m.clearedFields[labellingtask.FieldDescription] = struct{}{}
+	m.clearedFields[labellingproject.FieldDescription] = struct{}{}
 }
 
 // DescriptionCleared returns if the "description" field was cleared in this mutation.
-func (m *LabellingTaskMutation) DescriptionCleared() bool {
-	_, ok := m.clearedFields[labellingtask.FieldDescription]
+func (m *LabellingProjectMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[labellingproject.FieldDescription]
 	return ok
 }
 
 // ResetDescription resets all changes to the "description" field.
-func (m *LabellingTaskMutation) ResetDescription() {
+func (m *LabellingProjectMutation) ResetDescription() {
 	m.description = nil
-	delete(m.clearedFields, labellingtask.FieldDescription)
+	delete(m.clearedFields, labellingproject.FieldDescription)
 }
 
-// SetQualificationRequired sets the "qualification_required" field.
-func (m *LabellingTaskMutation) SetQualificationRequired(b bool) {
-	m.qualification_required = &b
+// SetIsPrivate sets the "is_private" field.
+func (m *LabellingProjectMutation) SetIsPrivate(b bool) {
+	m.is_private = &b
 }
 
-// QualificationRequired returns the value of the "qualification_required" field in the mutation.
-func (m *LabellingTaskMutation) QualificationRequired() (r bool, exists bool) {
-	v := m.qualification_required
+// IsPrivate returns the value of the "is_private" field in the mutation.
+func (m *LabellingProjectMutation) IsPrivate() (r bool, exists bool) {
+	v := m.is_private
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldQualificationRequired returns the old "qualification_required" field's value of the LabellingTask entity.
-// If the LabellingTask object wasn't provided to the builder, the object is fetched from the database.
+// OldIsPrivate returns the old "is_private" field's value of the LabellingProject entity.
+// If the LabellingProject object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LabellingTaskMutation) OldQualificationRequired(ctx context.Context) (v bool, err error) {
+func (m *LabellingProjectMutation) OldIsPrivate(ctx context.Context) (v bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldQualificationRequired is only allowed on UpdateOne operations")
+		return v, errors.New("OldIsPrivate is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldQualificationRequired requires an ID field in the mutation")
+		return v, errors.New("OldIsPrivate requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldQualificationRequired: %w", err)
+		return v, fmt.Errorf("querying old value for OldIsPrivate: %w", err)
 	}
-	return oldValue.QualificationRequired, nil
+	return oldValue.IsPrivate, nil
 }
 
-// ResetQualificationRequired resets all changes to the "qualification_required" field.
-func (m *LabellingTaskMutation) ResetQualificationRequired() {
-	m.qualification_required = nil
+// ResetIsPrivate resets all changes to the "is_private" field.
+func (m *LabellingProjectMutation) ResetIsPrivate() {
+	m.is_private = nil
 }
 
 // SetCallbackURL sets the "callback_url" field.
-func (m *LabellingTaskMutation) SetCallbackURL(s string) {
+func (m *LabellingProjectMutation) SetCallbackURL(s string) {
 	m.callback_url = &s
 }
 
 // CallbackURL returns the value of the "callback_url" field in the mutation.
-func (m *LabellingTaskMutation) CallbackURL() (r string, exists bool) {
+func (m *LabellingProjectMutation) CallbackURL() (r string, exists bool) {
 	v := m.callback_url
 	if v == nil {
 		return
@@ -790,10 +314,10 @@ func (m *LabellingTaskMutation) CallbackURL() (r string, exists bool) {
 	return *v, true
 }
 
-// OldCallbackURL returns the old "callback_url" field's value of the LabellingTask entity.
-// If the LabellingTask object wasn't provided to the builder, the object is fetched from the database.
+// OldCallbackURL returns the old "callback_url" field's value of the LabellingProject entity.
+// If the LabellingProject object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LabellingTaskMutation) OldCallbackURL(ctx context.Context) (v string, err error) {
+func (m *LabellingProjectMutation) OldCallbackURL(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCallbackURL is only allowed on UpdateOne operations")
 	}
@@ -808,140 +332,88 @@ func (m *LabellingTaskMutation) OldCallbackURL(ctx context.Context) (v string, e
 }
 
 // ClearCallbackURL clears the value of the "callback_url" field.
-func (m *LabellingTaskMutation) ClearCallbackURL() {
+func (m *LabellingProjectMutation) ClearCallbackURL() {
 	m.callback_url = nil
-	m.clearedFields[labellingtask.FieldCallbackURL] = struct{}{}
+	m.clearedFields[labellingproject.FieldCallbackURL] = struct{}{}
 }
 
 // CallbackURLCleared returns if the "callback_url" field was cleared in this mutation.
-func (m *LabellingTaskMutation) CallbackURLCleared() bool {
-	_, ok := m.clearedFields[labellingtask.FieldCallbackURL]
+func (m *LabellingProjectMutation) CallbackURLCleared() bool {
+	_, ok := m.clearedFields[labellingproject.FieldCallbackURL]
 	return ok
 }
 
 // ResetCallbackURL resets all changes to the "callback_url" field.
-func (m *LabellingTaskMutation) ResetCallbackURL() {
+func (m *LabellingProjectMutation) ResetCallbackURL() {
 	m.callback_url = nil
-	delete(m.clearedFields, labellingtask.FieldCallbackURL)
+	delete(m.clearedFields, labellingproject.FieldCallbackURL)
 }
 
-// AddResponseIDs adds the "responses" edge to the LabellingTaskResponse entity by ids.
-func (m *LabellingTaskMutation) AddResponseIDs(ids ...int) {
-	if m.responses == nil {
-		m.responses = make(map[int]struct{})
+// SetWorkersPerTask sets the "workers_per_task" field.
+func (m *LabellingProjectMutation) SetWorkersPerTask(i int) {
+	m.workers_per_task = &i
+	m.addworkers_per_task = nil
+}
+
+// WorkersPerTask returns the value of the "workers_per_task" field in the mutation.
+func (m *LabellingProjectMutation) WorkersPerTask() (r int, exists bool) {
+	v := m.workers_per_task
+	if v == nil {
+		return
 	}
-	for i := range ids {
-		m.responses[ids[i]] = struct{}{}
+	return *v, true
+}
+
+// OldWorkersPerTask returns the old "workers_per_task" field's value of the LabellingProject entity.
+// If the LabellingProject object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LabellingProjectMutation) OldWorkersPerTask(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorkersPerTask is only allowed on UpdateOne operations")
 	}
-}
-
-// ClearResponses clears the "responses" edge to the LabellingTaskResponse entity.
-func (m *LabellingTaskMutation) ClearResponses() {
-	m.clearedresponses = true
-}
-
-// ResponsesCleared reports if the "responses" edge to the LabellingTaskResponse entity was cleared.
-func (m *LabellingTaskMutation) ResponsesCleared() bool {
-	return m.clearedresponses
-}
-
-// RemoveResponseIDs removes the "responses" edge to the LabellingTaskResponse entity by IDs.
-func (m *LabellingTaskMutation) RemoveResponseIDs(ids ...int) {
-	if m.removedresponses == nil {
-		m.removedresponses = make(map[int]struct{})
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorkersPerTask requires an ID field in the mutation")
 	}
-	for i := range ids {
-		delete(m.responses, ids[i])
-		m.removedresponses[ids[i]] = struct{}{}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorkersPerTask: %w", err)
 	}
+	return oldValue.WorkersPerTask, nil
 }
 
-// RemovedResponses returns the removed IDs of the "responses" edge to the LabellingTaskResponse entity.
-func (m *LabellingTaskMutation) RemovedResponsesIDs() (ids []int) {
-	for id := range m.removedresponses {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResponsesIDs returns the "responses" edge IDs in the mutation.
-func (m *LabellingTaskMutation) ResponsesIDs() (ids []int) {
-	for id := range m.responses {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetResponses resets all changes to the "responses" edge.
-func (m *LabellingTaskMutation) ResetResponses() {
-	m.responses = nil
-	m.clearedresponses = false
-	m.removedresponses = nil
-}
-
-// AddExpertRequirementIDs adds the "expert_requirements" edge to the Qualification entity by ids.
-func (m *LabellingTaskMutation) AddExpertRequirementIDs(ids ...int) {
-	if m.expert_requirements == nil {
-		m.expert_requirements = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.expert_requirements[ids[i]] = struct{}{}
+// AddWorkersPerTask adds i to the "workers_per_task" field.
+func (m *LabellingProjectMutation) AddWorkersPerTask(i int) {
+	if m.addworkers_per_task != nil {
+		*m.addworkers_per_task += i
+	} else {
+		m.addworkers_per_task = &i
 	}
 }
 
-// ClearExpertRequirements clears the "expert_requirements" edge to the Qualification entity.
-func (m *LabellingTaskMutation) ClearExpertRequirements() {
-	m.clearedexpert_requirements = true
-}
-
-// ExpertRequirementsCleared reports if the "expert_requirements" edge to the Qualification entity was cleared.
-func (m *LabellingTaskMutation) ExpertRequirementsCleared() bool {
-	return m.clearedexpert_requirements
-}
-
-// RemoveExpertRequirementIDs removes the "expert_requirements" edge to the Qualification entity by IDs.
-func (m *LabellingTaskMutation) RemoveExpertRequirementIDs(ids ...int) {
-	if m.removedexpert_requirements == nil {
-		m.removedexpert_requirements = make(map[int]struct{})
+// AddedWorkersPerTask returns the value that was added to the "workers_per_task" field in this mutation.
+func (m *LabellingProjectMutation) AddedWorkersPerTask() (r int, exists bool) {
+	v := m.addworkers_per_task
+	if v == nil {
+		return
 	}
-	for i := range ids {
-		delete(m.expert_requirements, ids[i])
-		m.removedexpert_requirements[ids[i]] = struct{}{}
-	}
+	return *v, true
 }
 
-// RemovedExpertRequirements returns the removed IDs of the "expert_requirements" edge to the Qualification entity.
-func (m *LabellingTaskMutation) RemovedExpertRequirementsIDs() (ids []int) {
-	for id := range m.removedexpert_requirements {
-		ids = append(ids, id)
-	}
-	return
+// ResetWorkersPerTask resets all changes to the "workers_per_task" field.
+func (m *LabellingProjectMutation) ResetWorkersPerTask() {
+	m.workers_per_task = nil
+	m.addworkers_per_task = nil
 }
 
-// ExpertRequirementsIDs returns the "expert_requirements" edge IDs in the mutation.
-func (m *LabellingTaskMutation) ExpertRequirementsIDs() (ids []int) {
-	for id := range m.expert_requirements {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetExpertRequirements resets all changes to the "expert_requirements" edge.
-func (m *LabellingTaskMutation) ResetExpertRequirements() {
-	m.expert_requirements = nil
-	m.clearedexpert_requirements = false
-	m.removedexpert_requirements = nil
-}
-
-// Where appends a list predicates to the LabellingTaskMutation builder.
-func (m *LabellingTaskMutation) Where(ps ...predicate.LabellingTask) {
+// Where appends a list predicates to the LabellingProjectMutation builder.
+func (m *LabellingProjectMutation) Where(ps ...predicate.LabellingProject) {
 	m.predicates = append(m.predicates, ps...)
 }
 
-// WhereP appends storage-level predicates to the LabellingTaskMutation builder. Using this method,
+// WhereP appends storage-level predicates to the LabellingProjectMutation builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *LabellingTaskMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.LabellingTask, len(ps))
+func (m *LabellingProjectMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LabellingProject, len(ps))
 	for i := range ps {
 		p[i] = ps[i]
 	}
@@ -949,36 +421,42 @@ func (m *LabellingTaskMutation) WhereP(ps ...func(*sql.Selector)) {
 }
 
 // Op returns the operation name.
-func (m *LabellingTaskMutation) Op() Op {
+func (m *LabellingProjectMutation) Op() Op {
 	return m.op
 }
 
 // SetOp allows setting the mutation operation.
-func (m *LabellingTaskMutation) SetOp(op Op) {
+func (m *LabellingProjectMutation) SetOp(op Op) {
 	m.op = op
 }
 
-// Type returns the node type of this mutation (LabellingTask).
-func (m *LabellingTaskMutation) Type() string {
+// Type returns the node type of this mutation (LabellingProject).
+func (m *LabellingProjectMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *LabellingTaskMutation) Fields() []string {
-	fields := make([]string, 0, 4)
-	if m.title != nil {
-		fields = append(fields, labellingtask.FieldTitle)
+func (m *LabellingProjectMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.name != nil {
+		fields = append(fields, labellingproject.FieldName)
+	}
+	if m.status != nil {
+		fields = append(fields, labellingproject.FieldStatus)
 	}
 	if m.description != nil {
-		fields = append(fields, labellingtask.FieldDescription)
+		fields = append(fields, labellingproject.FieldDescription)
 	}
-	if m.qualification_required != nil {
-		fields = append(fields, labellingtask.FieldQualificationRequired)
+	if m.is_private != nil {
+		fields = append(fields, labellingproject.FieldIsPrivate)
 	}
 	if m.callback_url != nil {
-		fields = append(fields, labellingtask.FieldCallbackURL)
+		fields = append(fields, labellingproject.FieldCallbackURL)
+	}
+	if m.workers_per_task != nil {
+		fields = append(fields, labellingproject.FieldWorkersPerTask)
 	}
 	return fields
 }
@@ -986,16 +464,20 @@ func (m *LabellingTaskMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *LabellingTaskMutation) Field(name string) (ent.Value, bool) {
+func (m *LabellingProjectMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case labellingtask.FieldTitle:
-		return m.Title()
-	case labellingtask.FieldDescription:
+	case labellingproject.FieldName:
+		return m.Name()
+	case labellingproject.FieldStatus:
+		return m.Status()
+	case labellingproject.FieldDescription:
 		return m.Description()
-	case labellingtask.FieldQualificationRequired:
-		return m.QualificationRequired()
-	case labellingtask.FieldCallbackURL:
+	case labellingproject.FieldIsPrivate:
+		return m.IsPrivate()
+	case labellingproject.FieldCallbackURL:
 		return m.CallbackURL()
+	case labellingproject.FieldWorkersPerTask:
+		return m.WorkersPerTask()
 	}
 	return nil, false
 }
@@ -1003,1193 +485,216 @@ func (m *LabellingTaskMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *LabellingTaskMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *LabellingProjectMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case labellingtask.FieldTitle:
-		return m.OldTitle(ctx)
-	case labellingtask.FieldDescription:
+	case labellingproject.FieldName:
+		return m.OldName(ctx)
+	case labellingproject.FieldStatus:
+		return m.OldStatus(ctx)
+	case labellingproject.FieldDescription:
 		return m.OldDescription(ctx)
-	case labellingtask.FieldQualificationRequired:
-		return m.OldQualificationRequired(ctx)
-	case labellingtask.FieldCallbackURL:
+	case labellingproject.FieldIsPrivate:
+		return m.OldIsPrivate(ctx)
+	case labellingproject.FieldCallbackURL:
 		return m.OldCallbackURL(ctx)
+	case labellingproject.FieldWorkersPerTask:
+		return m.OldWorkersPerTask(ctx)
 	}
-	return nil, fmt.Errorf("unknown LabellingTask field %s", name)
+	return nil, fmt.Errorf("unknown LabellingProject field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *LabellingTaskMutation) SetField(name string, value ent.Value) error {
+func (m *LabellingProjectMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case labellingtask.FieldTitle:
+	case labellingproject.FieldName:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTitle(v)
+		m.SetName(v)
 		return nil
-	case labellingtask.FieldDescription:
+	case labellingproject.FieldStatus:
+		v, ok := value.(labellingproject.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case labellingproject.FieldDescription:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
 		return nil
-	case labellingtask.FieldQualificationRequired:
+	case labellingproject.FieldIsPrivate:
 		v, ok := value.(bool)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetQualificationRequired(v)
+		m.SetIsPrivate(v)
 		return nil
-	case labellingtask.FieldCallbackURL:
+	case labellingproject.FieldCallbackURL:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCallbackURL(v)
 		return nil
+	case labellingproject.FieldWorkersPerTask:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorkersPerTask(v)
+		return nil
 	}
-	return fmt.Errorf("unknown LabellingTask field %s", name)
+	return fmt.Errorf("unknown LabellingProject field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *LabellingTaskMutation) AddedFields() []string {
-	return nil
+func (m *LabellingProjectMutation) AddedFields() []string {
+	var fields []string
+	if m.addworkers_per_task != nil {
+		fields = append(fields, labellingproject.FieldWorkersPerTask)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *LabellingTaskMutation) AddedField(name string) (ent.Value, bool) {
+func (m *LabellingProjectMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case labellingproject.FieldWorkersPerTask:
+		return m.AddedWorkersPerTask()
+	}
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *LabellingTaskMutation) AddField(name string, value ent.Value) error {
+func (m *LabellingProjectMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case labellingproject.FieldWorkersPerTask:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddWorkersPerTask(v)
+		return nil
 	}
-	return fmt.Errorf("unknown LabellingTask numeric field %s", name)
+	return fmt.Errorf("unknown LabellingProject numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *LabellingTaskMutation) ClearedFields() []string {
+func (m *LabellingProjectMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(labellingtask.FieldDescription) {
-		fields = append(fields, labellingtask.FieldDescription)
+	if m.FieldCleared(labellingproject.FieldDescription) {
+		fields = append(fields, labellingproject.FieldDescription)
 	}
-	if m.FieldCleared(labellingtask.FieldCallbackURL) {
-		fields = append(fields, labellingtask.FieldCallbackURL)
+	if m.FieldCleared(labellingproject.FieldCallbackURL) {
+		fields = append(fields, labellingproject.FieldCallbackURL)
 	}
 	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *LabellingTaskMutation) FieldCleared(name string) bool {
+func (m *LabellingProjectMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *LabellingTaskMutation) ClearField(name string) error {
+func (m *LabellingProjectMutation) ClearField(name string) error {
 	switch name {
-	case labellingtask.FieldDescription:
+	case labellingproject.FieldDescription:
 		m.ClearDescription()
 		return nil
-	case labellingtask.FieldCallbackURL:
+	case labellingproject.FieldCallbackURL:
 		m.ClearCallbackURL()
 		return nil
 	}
-	return fmt.Errorf("unknown LabellingTask nullable field %s", name)
+	return fmt.Errorf("unknown LabellingProject nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *LabellingTaskMutation) ResetField(name string) error {
+func (m *LabellingProjectMutation) ResetField(name string) error {
 	switch name {
-	case labellingtask.FieldTitle:
-		m.ResetTitle()
+	case labellingproject.FieldName:
+		m.ResetName()
 		return nil
-	case labellingtask.FieldDescription:
+	case labellingproject.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case labellingproject.FieldDescription:
 		m.ResetDescription()
 		return nil
-	case labellingtask.FieldQualificationRequired:
-		m.ResetQualificationRequired()
+	case labellingproject.FieldIsPrivate:
+		m.ResetIsPrivate()
 		return nil
-	case labellingtask.FieldCallbackURL:
+	case labellingproject.FieldCallbackURL:
 		m.ResetCallbackURL()
 		return nil
+	case labellingproject.FieldWorkersPerTask:
+		m.ResetWorkersPerTask()
+		return nil
 	}
-	return fmt.Errorf("unknown LabellingTask field %s", name)
+	return fmt.Errorf("unknown LabellingProject field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *LabellingTaskMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.responses != nil {
-		edges = append(edges, labellingtask.EdgeResponses)
-	}
-	if m.expert_requirements != nil {
-		edges = append(edges, labellingtask.EdgeExpertRequirements)
-	}
+func (m *LabellingProjectMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *LabellingTaskMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case labellingtask.EdgeResponses:
-		ids := make([]ent.Value, 0, len(m.responses))
-		for id := range m.responses {
-			ids = append(ids, id)
-		}
-		return ids
-	case labellingtask.EdgeExpertRequirements:
-		ids := make([]ent.Value, 0, len(m.expert_requirements))
-		for id := range m.expert_requirements {
-			ids = append(ids, id)
-		}
-		return ids
-	}
+func (m *LabellingProjectMutation) AddedIDs(name string) []ent.Value {
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *LabellingTaskMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedresponses != nil {
-		edges = append(edges, labellingtask.EdgeResponses)
-	}
-	if m.removedexpert_requirements != nil {
-		edges = append(edges, labellingtask.EdgeExpertRequirements)
-	}
+func (m *LabellingProjectMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *LabellingTaskMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case labellingtask.EdgeResponses:
-		ids := make([]ent.Value, 0, len(m.removedresponses))
-		for id := range m.removedresponses {
-			ids = append(ids, id)
-		}
-		return ids
-	case labellingtask.EdgeExpertRequirements:
-		ids := make([]ent.Value, 0, len(m.removedexpert_requirements))
-		for id := range m.removedexpert_requirements {
-			ids = append(ids, id)
-		}
-		return ids
-	}
+func (m *LabellingProjectMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *LabellingTaskMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedresponses {
-		edges = append(edges, labellingtask.EdgeResponses)
-	}
-	if m.clearedexpert_requirements {
-		edges = append(edges, labellingtask.EdgeExpertRequirements)
-	}
+func (m *LabellingProjectMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *LabellingTaskMutation) EdgeCleared(name string) bool {
-	switch name {
-	case labellingtask.EdgeResponses:
-		return m.clearedresponses
-	case labellingtask.EdgeExpertRequirements:
-		return m.clearedexpert_requirements
-	}
+func (m *LabellingProjectMutation) EdgeCleared(name string) bool {
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *LabellingTaskMutation) ClearEdge(name string) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown LabellingTask unique edge %s", name)
+func (m *LabellingProjectMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LabellingProject unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *LabellingTaskMutation) ResetEdge(name string) error {
-	switch name {
-	case labellingtask.EdgeResponses:
-		m.ResetResponses()
-		return nil
-	case labellingtask.EdgeExpertRequirements:
-		m.ResetExpertRequirements()
-		return nil
-	}
-	return fmt.Errorf("unknown LabellingTask edge %s", name)
-}
-
-// LabellingTaskResponseMutation represents an operation that mutates the LabellingTaskResponse nodes in the graph.
-type LabellingTaskResponseMutation struct {
-	config
-	op            Op
-	typ           string
-	id            *int
-	response      *string
-	clearedFields map[string]struct{}
-	task          *int
-	clearedtask   bool
-	expert        *int
-	clearedexpert bool
-	done          bool
-	oldValue      func(context.Context) (*LabellingTaskResponse, error)
-	predicates    []predicate.LabellingTaskResponse
-}
-
-var _ ent.Mutation = (*LabellingTaskResponseMutation)(nil)
-
-// labellingtaskresponseOption allows management of the mutation configuration using functional options.
-type labellingtaskresponseOption func(*LabellingTaskResponseMutation)
-
-// newLabellingTaskResponseMutation creates new mutation for the LabellingTaskResponse entity.
-func newLabellingTaskResponseMutation(c config, op Op, opts ...labellingtaskresponseOption) *LabellingTaskResponseMutation {
-	m := &LabellingTaskResponseMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeLabellingTaskResponse,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withLabellingTaskResponseID sets the ID field of the mutation.
-func withLabellingTaskResponseID(id int) labellingtaskresponseOption {
-	return func(m *LabellingTaskResponseMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *LabellingTaskResponse
-		)
-		m.oldValue = func(ctx context.Context) (*LabellingTaskResponse, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().LabellingTaskResponse.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withLabellingTaskResponse sets the old LabellingTaskResponse of the mutation.
-func withLabellingTaskResponse(node *LabellingTaskResponse) labellingtaskresponseOption {
-	return func(m *LabellingTaskResponseMutation) {
-		m.oldValue = func(context.Context) (*LabellingTaskResponse, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m LabellingTaskResponseMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m LabellingTaskResponseMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *LabellingTaskResponseMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *LabellingTaskResponseMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().LabellingTaskResponse.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetResponse sets the "response" field.
-func (m *LabellingTaskResponseMutation) SetResponse(s string) {
-	m.response = &s
-}
-
-// Response returns the value of the "response" field in the mutation.
-func (m *LabellingTaskResponseMutation) Response() (r string, exists bool) {
-	v := m.response
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldResponse returns the old "response" field's value of the LabellingTaskResponse entity.
-// If the LabellingTaskResponse object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LabellingTaskResponseMutation) OldResponse(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldResponse is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldResponse requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldResponse: %w", err)
-	}
-	return oldValue.Response, nil
-}
-
-// ResetResponse resets all changes to the "response" field.
-func (m *LabellingTaskResponseMutation) ResetResponse() {
-	m.response = nil
-}
-
-// SetTaskID sets the "task" edge to the LabellingTask entity by id.
-func (m *LabellingTaskResponseMutation) SetTaskID(id int) {
-	m.task = &id
-}
-
-// ClearTask clears the "task" edge to the LabellingTask entity.
-func (m *LabellingTaskResponseMutation) ClearTask() {
-	m.clearedtask = true
-}
-
-// TaskCleared reports if the "task" edge to the LabellingTask entity was cleared.
-func (m *LabellingTaskResponseMutation) TaskCleared() bool {
-	return m.clearedtask
-}
-
-// TaskID returns the "task" edge ID in the mutation.
-func (m *LabellingTaskResponseMutation) TaskID() (id int, exists bool) {
-	if m.task != nil {
-		return *m.task, true
-	}
-	return
-}
-
-// TaskIDs returns the "task" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// TaskID instead. It exists only for internal usage by the builders.
-func (m *LabellingTaskResponseMutation) TaskIDs() (ids []int) {
-	if id := m.task; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetTask resets all changes to the "task" edge.
-func (m *LabellingTaskResponseMutation) ResetTask() {
-	m.task = nil
-	m.clearedtask = false
-}
-
-// SetExpertID sets the "expert" edge to the Expert entity by id.
-func (m *LabellingTaskResponseMutation) SetExpertID(id int) {
-	m.expert = &id
-}
-
-// ClearExpert clears the "expert" edge to the Expert entity.
-func (m *LabellingTaskResponseMutation) ClearExpert() {
-	m.clearedexpert = true
-}
-
-// ExpertCleared reports if the "expert" edge to the Expert entity was cleared.
-func (m *LabellingTaskResponseMutation) ExpertCleared() bool {
-	return m.clearedexpert
-}
-
-// ExpertID returns the "expert" edge ID in the mutation.
-func (m *LabellingTaskResponseMutation) ExpertID() (id int, exists bool) {
-	if m.expert != nil {
-		return *m.expert, true
-	}
-	return
-}
-
-// ExpertIDs returns the "expert" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ExpertID instead. It exists only for internal usage by the builders.
-func (m *LabellingTaskResponseMutation) ExpertIDs() (ids []int) {
-	if id := m.expert; id != nil {
-		ids = append(ids, *id)
-	}
-	return
-}
-
-// ResetExpert resets all changes to the "expert" edge.
-func (m *LabellingTaskResponseMutation) ResetExpert() {
-	m.expert = nil
-	m.clearedexpert = false
-}
-
-// Where appends a list predicates to the LabellingTaskResponseMutation builder.
-func (m *LabellingTaskResponseMutation) Where(ps ...predicate.LabellingTaskResponse) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the LabellingTaskResponseMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *LabellingTaskResponseMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.LabellingTaskResponse, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *LabellingTaskResponseMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *LabellingTaskResponseMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (LabellingTaskResponse).
-func (m *LabellingTaskResponseMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *LabellingTaskResponseMutation) Fields() []string {
-	fields := make([]string, 0, 1)
-	if m.response != nil {
-		fields = append(fields, labellingtaskresponse.FieldResponse)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *LabellingTaskResponseMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case labellingtaskresponse.FieldResponse:
-		return m.Response()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *LabellingTaskResponseMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case labellingtaskresponse.FieldResponse:
-		return m.OldResponse(ctx)
-	}
-	return nil, fmt.Errorf("unknown LabellingTaskResponse field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *LabellingTaskResponseMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case labellingtaskresponse.FieldResponse:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetResponse(v)
-		return nil
-	}
-	return fmt.Errorf("unknown LabellingTaskResponse field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *LabellingTaskResponseMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *LabellingTaskResponseMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *LabellingTaskResponseMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown LabellingTaskResponse numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *LabellingTaskResponseMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *LabellingTaskResponseMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *LabellingTaskResponseMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown LabellingTaskResponse nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *LabellingTaskResponseMutation) ResetField(name string) error {
-	switch name {
-	case labellingtaskresponse.FieldResponse:
-		m.ResetResponse()
-		return nil
-	}
-	return fmt.Errorf("unknown LabellingTaskResponse field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *LabellingTaskResponseMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.task != nil {
-		edges = append(edges, labellingtaskresponse.EdgeTask)
-	}
-	if m.expert != nil {
-		edges = append(edges, labellingtaskresponse.EdgeExpert)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *LabellingTaskResponseMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case labellingtaskresponse.EdgeTask:
-		if id := m.task; id != nil {
-			return []ent.Value{*id}
-		}
-	case labellingtaskresponse.EdgeExpert:
-		if id := m.expert; id != nil {
-			return []ent.Value{*id}
-		}
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *LabellingTaskResponseMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *LabellingTaskResponseMutation) RemovedIDs(name string) []ent.Value {
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *LabellingTaskResponseMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedtask {
-		edges = append(edges, labellingtaskresponse.EdgeTask)
-	}
-	if m.clearedexpert {
-		edges = append(edges, labellingtaskresponse.EdgeExpert)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *LabellingTaskResponseMutation) EdgeCleared(name string) bool {
-	switch name {
-	case labellingtaskresponse.EdgeTask:
-		return m.clearedtask
-	case labellingtaskresponse.EdgeExpert:
-		return m.clearedexpert
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *LabellingTaskResponseMutation) ClearEdge(name string) error {
-	switch name {
-	case labellingtaskresponse.EdgeTask:
-		m.ClearTask()
-		return nil
-	case labellingtaskresponse.EdgeExpert:
-		m.ClearExpert()
-		return nil
-	}
-	return fmt.Errorf("unknown LabellingTaskResponse unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *LabellingTaskResponseMutation) ResetEdge(name string) error {
-	switch name {
-	case labellingtaskresponse.EdgeTask:
-		m.ResetTask()
-		return nil
-	case labellingtaskresponse.EdgeExpert:
-		m.ResetExpert()
-		return nil
-	}
-	return fmt.Errorf("unknown LabellingTaskResponse edge %s", name)
-}
-
-// QualificationMutation represents an operation that mutates the Qualification nodes in the graph.
-type QualificationMutation struct {
-	config
-	op             Op
-	typ            string
-	id             *int
-	value          *enums.QualificationValue
-	clearedFields  map[string]struct{}
-	tasks          map[int]struct{}
-	removedtasks   map[int]struct{}
-	clearedtasks   bool
-	experts        map[int]struct{}
-	removedexperts map[int]struct{}
-	clearedexperts bool
-	done           bool
-	oldValue       func(context.Context) (*Qualification, error)
-	predicates     []predicate.Qualification
-}
-
-var _ ent.Mutation = (*QualificationMutation)(nil)
-
-// qualificationOption allows management of the mutation configuration using functional options.
-type qualificationOption func(*QualificationMutation)
-
-// newQualificationMutation creates new mutation for the Qualification entity.
-func newQualificationMutation(c config, op Op, opts ...qualificationOption) *QualificationMutation {
-	m := &QualificationMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeQualification,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withQualificationID sets the ID field of the mutation.
-func withQualificationID(id int) qualificationOption {
-	return func(m *QualificationMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *Qualification
-		)
-		m.oldValue = func(ctx context.Context) (*Qualification, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().Qualification.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withQualification sets the old Qualification of the mutation.
-func withQualification(node *Qualification) qualificationOption {
-	return func(m *QualificationMutation) {
-		m.oldValue = func(context.Context) (*Qualification, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m QualificationMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m QualificationMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("ent: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *QualificationMutation) ID() (id int, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *QualificationMutation) IDs(ctx context.Context) ([]int, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []int{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Qualification.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetValue sets the "value" field.
-func (m *QualificationMutation) SetValue(ev enums.QualificationValue) {
-	m.value = &ev
-}
-
-// Value returns the value of the "value" field in the mutation.
-func (m *QualificationMutation) Value() (r enums.QualificationValue, exists bool) {
-	v := m.value
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldValue returns the old "value" field's value of the Qualification entity.
-// If the Qualification object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *QualificationMutation) OldValue(ctx context.Context) (v enums.QualificationValue, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldValue is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldValue requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldValue: %w", err)
-	}
-	return oldValue.Value, nil
-}
-
-// ResetValue resets all changes to the "value" field.
-func (m *QualificationMutation) ResetValue() {
-	m.value = nil
-}
-
-// AddTaskIDs adds the "tasks" edge to the LabellingTask entity by ids.
-func (m *QualificationMutation) AddTaskIDs(ids ...int) {
-	if m.tasks == nil {
-		m.tasks = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.tasks[ids[i]] = struct{}{}
-	}
-}
-
-// ClearTasks clears the "tasks" edge to the LabellingTask entity.
-func (m *QualificationMutation) ClearTasks() {
-	m.clearedtasks = true
-}
-
-// TasksCleared reports if the "tasks" edge to the LabellingTask entity was cleared.
-func (m *QualificationMutation) TasksCleared() bool {
-	return m.clearedtasks
-}
-
-// RemoveTaskIDs removes the "tasks" edge to the LabellingTask entity by IDs.
-func (m *QualificationMutation) RemoveTaskIDs(ids ...int) {
-	if m.removedtasks == nil {
-		m.removedtasks = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.tasks, ids[i])
-		m.removedtasks[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedTasks returns the removed IDs of the "tasks" edge to the LabellingTask entity.
-func (m *QualificationMutation) RemovedTasksIDs() (ids []int) {
-	for id := range m.removedtasks {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// TasksIDs returns the "tasks" edge IDs in the mutation.
-func (m *QualificationMutation) TasksIDs() (ids []int) {
-	for id := range m.tasks {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetTasks resets all changes to the "tasks" edge.
-func (m *QualificationMutation) ResetTasks() {
-	m.tasks = nil
-	m.clearedtasks = false
-	m.removedtasks = nil
-}
-
-// AddExpertIDs adds the "experts" edge to the Expert entity by ids.
-func (m *QualificationMutation) AddExpertIDs(ids ...int) {
-	if m.experts == nil {
-		m.experts = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.experts[ids[i]] = struct{}{}
-	}
-}
-
-// ClearExperts clears the "experts" edge to the Expert entity.
-func (m *QualificationMutation) ClearExperts() {
-	m.clearedexperts = true
-}
-
-// ExpertsCleared reports if the "experts" edge to the Expert entity was cleared.
-func (m *QualificationMutation) ExpertsCleared() bool {
-	return m.clearedexperts
-}
-
-// RemoveExpertIDs removes the "experts" edge to the Expert entity by IDs.
-func (m *QualificationMutation) RemoveExpertIDs(ids ...int) {
-	if m.removedexperts == nil {
-		m.removedexperts = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.experts, ids[i])
-		m.removedexperts[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedExperts returns the removed IDs of the "experts" edge to the Expert entity.
-func (m *QualificationMutation) RemovedExpertsIDs() (ids []int) {
-	for id := range m.removedexperts {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ExpertsIDs returns the "experts" edge IDs in the mutation.
-func (m *QualificationMutation) ExpertsIDs() (ids []int) {
-	for id := range m.experts {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetExperts resets all changes to the "experts" edge.
-func (m *QualificationMutation) ResetExperts() {
-	m.experts = nil
-	m.clearedexperts = false
-	m.removedexperts = nil
-}
-
-// Where appends a list predicates to the QualificationMutation builder.
-func (m *QualificationMutation) Where(ps ...predicate.Qualification) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the QualificationMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *QualificationMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Qualification, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *QualificationMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *QualificationMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (Qualification).
-func (m *QualificationMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *QualificationMutation) Fields() []string {
-	fields := make([]string, 0, 1)
-	if m.value != nil {
-		fields = append(fields, qualification.FieldValue)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *QualificationMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case qualification.FieldValue:
-		return m.Value()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *QualificationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case qualification.FieldValue:
-		return m.OldValue(ctx)
-	}
-	return nil, fmt.Errorf("unknown Qualification field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *QualificationMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case qualification.FieldValue:
-		v, ok := value.(enums.QualificationValue)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetValue(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Qualification field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *QualificationMutation) AddedFields() []string {
-	return nil
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *QualificationMutation) AddedField(name string) (ent.Value, bool) {
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *QualificationMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Qualification numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *QualificationMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *QualificationMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *QualificationMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Qualification nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *QualificationMutation) ResetField(name string) error {
-	switch name {
-	case qualification.FieldValue:
-		m.ResetValue()
-		return nil
-	}
-	return fmt.Errorf("unknown Qualification field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *QualificationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.tasks != nil {
-		edges = append(edges, qualification.EdgeTasks)
-	}
-	if m.experts != nil {
-		edges = append(edges, qualification.EdgeExperts)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *QualificationMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case qualification.EdgeTasks:
-		ids := make([]ent.Value, 0, len(m.tasks))
-		for id := range m.tasks {
-			ids = append(ids, id)
-		}
-		return ids
-	case qualification.EdgeExperts:
-		ids := make([]ent.Value, 0, len(m.experts))
-		for id := range m.experts {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *QualificationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.removedtasks != nil {
-		edges = append(edges, qualification.EdgeTasks)
-	}
-	if m.removedexperts != nil {
-		edges = append(edges, qualification.EdgeExperts)
-	}
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *QualificationMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case qualification.EdgeTasks:
-		ids := make([]ent.Value, 0, len(m.removedtasks))
-		for id := range m.removedtasks {
-			ids = append(ids, id)
-		}
-		return ids
-	case qualification.EdgeExperts:
-		ids := make([]ent.Value, 0, len(m.removedexperts))
-		for id := range m.removedexperts {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *QualificationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
-	if m.clearedtasks {
-		edges = append(edges, qualification.EdgeTasks)
-	}
-	if m.clearedexperts {
-		edges = append(edges, qualification.EdgeExperts)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *QualificationMutation) EdgeCleared(name string) bool {
-	switch name {
-	case qualification.EdgeTasks:
-		return m.clearedtasks
-	case qualification.EdgeExperts:
-		return m.clearedexperts
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *QualificationMutation) ClearEdge(name string) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Qualification unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *QualificationMutation) ResetEdge(name string) error {
-	switch name {
-	case qualification.EdgeTasks:
-		m.ResetTasks()
-		return nil
-	case qualification.EdgeExperts:
-		m.ResetExperts()
-		return nil
-	}
-	return fmt.Errorf("unknown Qualification edge %s", name)
+func (m *LabellingProjectMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LabellingProject edge %s", name)
 }

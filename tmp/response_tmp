@@ -36,3 +36,4 @@ func (LabellingTaskResponse) Annotations() []schema.Annotation {
 		entgql.Mutations(entgql.MutationCreate()),
 	}
 }
+

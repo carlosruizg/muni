@@ -12,10 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/carlosruizg/muni/ent/expert"
-	"github.com/carlosruizg/muni/ent/labellingtask"
-	"github.com/carlosruizg/muni/ent/labellingtaskresponse"
-	"github.com/carlosruizg/muni/ent/qualification"
+	"github.com/carlosruizg/muni/ent/labellingproject"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -76,10 +73,7 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			expert.Table:                expert.ValidColumn,
-			labellingtask.Table:         labellingtask.ValidColumn,
-			labellingtaskresponse.Table: labellingtaskresponse.ValidColumn,
-			qualification.Table:         qualification.ValidColumn,
+			labellingproject.Table: labellingproject.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

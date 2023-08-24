@@ -21,6 +21,8 @@ Validate companies are interested in labelling/verification done by experts.
 
 - [ ] Create labelling project [Companies]
   - Name
+  - Status
+  - Company
   - private bool (if private, only people with link can respond)
   - instructions
   - workers per task

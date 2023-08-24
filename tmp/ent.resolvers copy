@@ -21,9 +21,19 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, erro
 	panic(fmt.Errorf("not implemented: Nodes - nodes"))
 }
 
-// LabellingProjects is the resolver for the labellingProjects field.
-func (r *queryResolver) LabellingProjects(ctx context.Context) ([]*ent.LabellingProject, error) {
-	return r.client.LabellingProject.Query().All(ctx)
+// Experts is the resolver for the experts field.
+func (r *queryResolver) Experts(ctx context.Context) ([]*ent.Expert, error) {
+	return r.client.Expert.Query().All(ctx)
+}
+
+// LabellingTasks is the resolver for the labellingTasks field.
+func (r *queryResolver) LabellingTasks(ctx context.Context) ([]*ent.LabellingTask, error) {
+	return r.client.LabellingTask.Query().All(ctx)
+}
+
+// LabellingTaskResponses is the resolver for the labellingTaskResponses field.
+func (r *queryResolver) LabellingTaskResponses(ctx context.Context) ([]*ent.LabellingTaskResponse, error) {
+	return r.client.LabellingTaskResponse.Query().All(ctx)
 }
 
 // Query returns QueryResolver implementation.

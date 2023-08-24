@@ -36,3 +36,4 @@ func (Question) Annotations() []schema.Annotation {
 		entgql.Mutations(entgql.MutationCreate()),
 	}
 }
+

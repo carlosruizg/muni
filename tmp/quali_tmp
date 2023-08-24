@@ -26,3 +26,4 @@ func (Qualification) Edges() []ent.Edge {
 		edge.From("experts", Expert.Type).Ref("qualifications"),
 	}
 }
+

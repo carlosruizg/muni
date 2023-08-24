@@ -8,135 +8,27 @@ import (
 )
 
 var (
-	// ExpertsColumns holds the columns for the "experts" table.
-	ExpertsColumns = []*schema.Column{
+	// LabellingProjectsColumns holds the columns for the "labelling_projects" table.
+	LabellingProjectsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
-	}
-	// ExpertsTable holds the schema information for the "experts" table.
-	ExpertsTable = &schema.Table{
-		Name:       "experts",
-		Columns:    ExpertsColumns,
-		PrimaryKey: []*schema.Column{ExpertsColumns[0]},
-	}
-	// LabellingTasksColumns holds the columns for the "labelling_tasks" table.
-	LabellingTasksColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "title", Type: field.TypeString},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"draft", "running", "cancelled", "completed"}, Default: "draft"},
 		{Name: "description", Type: field.TypeString, Nullable: true},
-		{Name: "qualification_required", Type: field.TypeBool},
+		{Name: "is_private", Type: field.TypeBool, Default: false},
 		{Name: "callback_url", Type: field.TypeString, Nullable: true},
+		{Name: "workers_per_task", Type: field.TypeInt, Default: 1},
 	}
-	// LabellingTasksTable holds the schema information for the "labelling_tasks" table.
-	LabellingTasksTable = &schema.Table{
-		Name:       "labelling_tasks",
-		Columns:    LabellingTasksColumns,
-		PrimaryKey: []*schema.Column{LabellingTasksColumns[0]},
-	}
-	// LabellingTaskResponsesColumns holds the columns for the "labelling_task_responses" table.
-	LabellingTaskResponsesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "response", Type: field.TypeString},
-		{Name: "expert_task_responses", Type: field.TypeInt, Nullable: true},
-		{Name: "labelling_task_responses", Type: field.TypeInt, Nullable: true},
-	}
-	// LabellingTaskResponsesTable holds the schema information for the "labelling_task_responses" table.
-	LabellingTaskResponsesTable = &schema.Table{
-		Name:       "labelling_task_responses",
-		Columns:    LabellingTaskResponsesColumns,
-		PrimaryKey: []*schema.Column{LabellingTaskResponsesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "labelling_task_responses_experts_task_responses",
-				Columns:    []*schema.Column{LabellingTaskResponsesColumns[2]},
-				RefColumns: []*schema.Column{ExpertsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "labelling_task_responses_labelling_tasks_responses",
-				Columns:    []*schema.Column{LabellingTaskResponsesColumns[3]},
-				RefColumns: []*schema.Column{LabellingTasksColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
-	// QualificationsColumns holds the columns for the "qualifications" table.
-	QualificationsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "value", Type: field.TypeEnum, Enums: []string{"CODER", "MEDICAL", "ARTIST", "STEM"}},
-	}
-	// QualificationsTable holds the schema information for the "qualifications" table.
-	QualificationsTable = &schema.Table{
-		Name:       "qualifications",
-		Columns:    QualificationsColumns,
-		PrimaryKey: []*schema.Column{QualificationsColumns[0]},
-	}
-	// ExpertQualificationsColumns holds the columns for the "expert_qualifications" table.
-	ExpertQualificationsColumns = []*schema.Column{
-		{Name: "expert_id", Type: field.TypeInt},
-		{Name: "qualification_id", Type: field.TypeInt},
-	}
-	// ExpertQualificationsTable holds the schema information for the "expert_qualifications" table.
-	ExpertQualificationsTable = &schema.Table{
-		Name:       "expert_qualifications",
-		Columns:    ExpertQualificationsColumns,
-		PrimaryKey: []*schema.Column{ExpertQualificationsColumns[0], ExpertQualificationsColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "expert_qualifications_expert_id",
-				Columns:    []*schema.Column{ExpertQualificationsColumns[0]},
-				RefColumns: []*schema.Column{ExpertsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "expert_qualifications_qualification_id",
-				Columns:    []*schema.Column{ExpertQualificationsColumns[1]},
-				RefColumns: []*schema.Column{QualificationsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-	}
-	// LabellingTaskExpertRequirementsColumns holds the columns for the "labelling_task_expert_requirements" table.
-	LabellingTaskExpertRequirementsColumns = []*schema.Column{
-		{Name: "labelling_task_id", Type: field.TypeInt},
-		{Name: "qualification_id", Type: field.TypeInt},
-	}
-	// LabellingTaskExpertRequirementsTable holds the schema information for the "labelling_task_expert_requirements" table.
-	LabellingTaskExpertRequirementsTable = &schema.Table{
-		Name:       "labelling_task_expert_requirements",
-		Columns:    LabellingTaskExpertRequirementsColumns,
-		PrimaryKey: []*schema.Column{LabellingTaskExpertRequirementsColumns[0], LabellingTaskExpertRequirementsColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "labelling_task_expert_requirements_labelling_task_id",
-				Columns:    []*schema.Column{LabellingTaskExpertRequirementsColumns[0]},
-				RefColumns: []*schema.Column{LabellingTasksColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:     "labelling_task_expert_requirements_qualification_id",
-				Columns:    []*schema.Column{LabellingTaskExpertRequirementsColumns[1]},
-				RefColumns: []*schema.Column{QualificationsColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
+	// LabellingProjectsTable holds the schema information for the "labelling_projects" table.
+	LabellingProjectsTable = &schema.Table{
+		Name:       "labelling_projects",
+		Columns:    LabellingProjectsColumns,
+		PrimaryKey: []*schema.Column{LabellingProjectsColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		ExpertsTable,
-		LabellingTasksTable,
-		LabellingTaskResponsesTable,
-		QualificationsTable,
-		ExpertQualificationsTable,
-		LabellingTaskExpertRequirementsTable,
+		LabellingProjectsTable,
 	}
 )
 
 func init() {
-	LabellingTaskResponsesTable.ForeignKeys[0].RefTable = ExpertsTable
-	LabellingTaskResponsesTable.ForeignKeys[1].RefTable = LabellingTasksTable
-	ExpertQualificationsTable.ForeignKeys[0].RefTable = ExpertsTable
-	ExpertQualificationsTable.ForeignKeys[1].RefTable = QualificationsTable
-	LabellingTaskExpertRequirementsTable.ForeignKeys[0].RefTable = LabellingTasksTable
-	LabellingTaskExpertRequirementsTable.ForeignKeys[1].RefTable = QualificationsTable
 }

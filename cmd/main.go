@@ -12,8 +12,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/carlosruizg/muni"
 	"github.com/carlosruizg/muni/ent/migrate"
-
-	_ "github.com/jackc/pgx/v5/stdlib"
+	// _ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
@@ -51,10 +50,10 @@ func main() {
 }
 
 func createTestData(ctx context.Context, dbClient *muni.DB) {
-	experts, _ := dbClient.EntClient.Expert.Query().All(ctx)
-	fmt.Printf("%+v \n", experts)
-	quali, _ := dbClient.EntClient.Qualification.Query().All(ctx)
-	fmt.Printf("%+v \n", quali)
+	// experts, _ := dbClient.EntClient.Expert.Query().All(ctx)
+	// fmt.Printf("%+v \n", experts)
+	// quali, _ := dbClient.EntClient.Qualification.Query().All(ctx)
+	// fmt.Printf("%+v \n", quali)
 	// quali, + := dbClient.EntClient.
 	// dbClient.EntClient.Qualification.Create().SetValue(schema.Coder).SaveX(ctx)
 	// dbClient.EntClient.Qualification.Create().SetValue(schema.Medical).SaveX(ctx)

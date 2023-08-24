@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/carlosruizg/muni/ent"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type DB struct {
